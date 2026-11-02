@@ -1,44 +1,73 @@
+<div align="center">
+
+<img src="brand/assets/banner.svg" alt="fovea — keep the recent window sharp" width="820"/>
+
 # fovea
 
-The eye's focal centre, for an agent's history — as [magpie](https://usemagpie.ai) gateway middleware. The recent window a request works in stays sharp; the history around it, like peripheral vision, stays present but carries only its outline: old tool results and long old texts are cut to their head and tail, and images sent turns ago give way to a one-line note. And on a saccade — the eye jumping to a new target — a new topic's request does not carry the old context at all. The agent keeps its whole history, as it should; it just stops paying to re-read every old file and command output on every turn.
+**magpie 网关中间件：最近窗口看得清，之前的旧历史只带轮廓。**
 
-A coding agent that reads files and runs commands can carry 200k tokens of history, most of it tool output from many turns back. That cost comes back on every request — and it is the part with the shortest useful life. This middleware shortens it at the gateway, before it reaches the provider, whatever provider serves the request.
+[![License: MIT](https://img.shields.io/badge/License-MIT-2f63a2.svg?style=for-the-badge)](LICENSE)
+[![Release](https://img.shields.io/badge/release-v0.2.0-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
+[![Tests](https://img.shields.io/badge/tests-29%2F29-brightgreen?style=for-the-badge)](#证据三层各管什么)
+[![Platform](https://img.shields.io/badge/magpie-middleware-8a6bbf?style=for-the-badge)](https://usemagpie.ai)
+[![Runtime](https://img.shields.io/badge/runtime-moejs%20%C2%B7%20zero%20deps-4a5568?style=for-the-badge)](fovea.middleware.js)
 
-All three request shapes are read in their own way — Chat (`role:"tool"`), Anthropic (`tool_result` blocks) and the Responses API (`function_call_output` items) — and a body in none of them passes untouched.
+</div>
 
-Nothing is dropped:
+---
 
-- message count and order stay as sent; an old tool result is shortened, not removed, so every `tool_call` still has its answer, in both Chat (`role:"tool"`) and Anthropic (`tool_result`) shapes
-- the system prompt and the last `keep_recent` messages are never touched; in the default mode the first user message (the task the history serves) stays whole too
-- tool calls, ids and thinking blocks are never touched
-- content already carrying the marker is left alone, so a history the agent sends back each turn is cut once, not again
-- content matching a `protect` pattern (a diff, a key block) is left whole
-- under `threshold` the request passes as it came, byte for byte
+一个会读文件、跑命令的 coding agent，历史很快堆到几十万 token——其中大头是很多轮之前的工具输出。**这些内容每发一次请求都要重新计费一次，而它们是整段历史里寿命最短的部分。** fovea 在网关上把它裁薄：最近窗口原样保留，旧工具输出和长文本只留头尾，几轮前的图换成一行注记。
 
-The request's size is measured by walking its strings, not by serialising the whole body — on a 5MB request that is the difference between reading it and allocating another 5MB on the request path.
+## 🏆 为什么是 fovea
 
-On a saccade the old task message collapses with the rest — it was the previous topic's, and the new question does not serve it. Short old texts (under ~160 chars) stay: they cost nothing and keep the flow readable. Tool pairing survives the same way as always: an old tool result becomes a note, never a removal, so every `tool_call` still has its answer.
+| | 整段历史重发 | agent 自带 `/compact` | [history-trim](https://github.com/magpie-community/plugins/tree/main/packages/history-trim) | **fovea** |
+|---|:---:|:---:|:---:|:---:|
+| 旧工具输出留头尾、中间省略 | ❌ | ❌ 交给摘要 | ❌ 只折空白/去重 | ✅ |
+| 换话题时不携带旧上下文（saccade） | ❌ | 部分，打断式 | ❌ | ✅ |
+| 缓存友好的裁剪边界（cut_step 分块） | — | ❌ 摘要必失配 | ❌ | ✅ |
+| 工具调用配对永远完整（三种请求形状） | ✅ | ⚠️ 摘要丢失 | ✅ | ✅ |
+| Provider 无关，agent 零改造 | ✅ | ❌ 每个 agent 各自实现 | ✅ | ✅ |
+| 自带证据页：前后对照 / 缓存稳定性 / A/B | ❌ | ❌ | ❌ | ✅ |
 
-Replies are never touched: what the agent keeps from a reply is the agent's to keep.
+## 🔥 四件事
 
-Install it with `magpie plugin add github:webkubor/fovea`, from magpie's **Plugins › Discover** (repos tagged `magpie-plugin`), or from a local checkout `magpie plugin add /path/to/fovea`. Options live under **Plugins › Installed › Options**, or with `magpie plugin options fovea '<json>'`.
+- 👁️ **中央凹视觉模型** —— 最近 `keep_recent` 条消息逐字不动；更早的内容像周边视野，只剩轮廓（头+尾+省略标记）。消息条数、顺序、id、工具配对一个不少。
+- 📦 **saccade：换话题就不带旧的** —— 最新问题与首条任务几乎无共同词时，旧上下文折叠成一行注记。「继续」这类短跟进不会误触发。
+- 🧊 **cut_step：为 prompt cache 而生** —— 裁剪边界只按块移动，块内已裁前缀逐字节稳定，缓存能连续命中；跨块才失效一次（这是对上游评审 §1 的正面回答，有两轮回归测试锁死）。
+- 🧾 **state_marker：你的结构化状态取代原始任务消息** —— agent 自己维护的任务/约束/决策 JSON 块永不被裁，同时原始任务原文不再享受豁免，按普通旧内容裁掉。
 
-## Options
+## ⚡ 30 秒上手
 
-| Option | Default | Meaning |
+```sh
+magpie plugin add github:webkubor/fovea
+magpie plugin options fovea '{"saccade":"auto","state_marker":"<!-- fovea:state -->"}'
+```
+
+装完在 magpie 窗口 **Plugins › Fovea evidence** 打开证据页：粘贴你自己的请求 JSON，浏览器里现算前后差异（不联网、不保存正文）。想先看代码再装：
+
+```sh
+git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 29/29，无需任何依赖
+```
+
+---
+
+## 它怎么工作
+
+`onRequest` 收到请求后：请求小于 `threshold` 原样放行；否则窗口（按条数与 token 预算取宽者）之前的旧消息逐条裁剪。Chat（`role:"tool"`）、Anthropic（`tool_result` 块）、Responses API（`function_call_output`）三种形状各自处理；无法识别的形状原样通过。已经带 `[fovea: …]` 标记的内容不再二次裁剪。失败即放行（fail open）。
+
+| 选项 | 默认 | 含义 |
 |---|---|---|
-| `threshold` | `96000` | Chars of request the middleware acts above (~24k tokens). `0` acts on every request. |
-| `keep_recent` | `12` | Messages at the end kept whole. |
-| `keep_recent_tokens` | `16000` | The same window as a token budget. The larger of the two windows is kept, so a few huge recent messages are not cut for being few. `0` turns the budget off. |
-| `tool_head` / `tool_tail` | `600` / `300` | What an old tool result keeps of its start and end. |
-| `text_head` / `text_tail` | `1200` / `400` | What an old text message keeps. |
-| `drop_old_images` | `true` | Images older than the window become `[fovea: old image omitted]`. |
-| `protect` | `[]` | Regexes whose matches stay whole in both modes — `["^diff --git ", "BEGIN .*PRIVATE KEY"]` for text that is only useful verbatim. |
-| `cut_step` | `24` | Cut boundary moves only in blocks of this many messages to keep the already-cut prefix identical across nearby requests. Histories below one full block stay uncut; set `1` if you prefer immediate thinning over cache reuse. |
-| `saccade` | `"off"` | `"off"` keeps head and tail. `"auto"` checks lexical overlap between the latest question and the **first** task message; when near zero, sufficiently long old content becomes `[fovea: prior topic not carried]`. `"always"` collapses on every eligible request. Short follow-ups such as “继续” leave the earlier mode intact only for that request. |
-| `state_marker` | `""` | A marker your own structured state block carries. The message with the marker is never touched in either mode, and its presence means the raw task message no longer needs protecting — the state carries the task, so that message is thinned like any other old content. |
+| `threshold` | `96000` | 请求字符数超过才动手（约 24k token；`0` 总是动手） |
+| `keep_recent` / `keep_recent_tokens` | `12` / `16000` | 最近窗口，按条数与 token 预算取更宽者；`0` 关闭预算 |
+| `cut_step` | `24` | 裁剪边界按块移动，块内前缀逐字稳定；不足一块不动（省缓存），要随裁随减设 `1` |
+| `tool_head` / `tool_tail` | `600` / `300` | 旧工具输出保留的头尾 |
+| `text_head` / `text_tail` | `1200` / `400` | 旧文本保留的头尾 |
+| `drop_old_images` | `true` | 窗口外的旧图换成 `[fovea: old image omitted]` |
+| `protect` | `[]` | 命中即整段保全的正则（两种模式都生效），如 `["^diff --git ", "BEGIN .*PRIVATE KEY"]` |
+| `saccade` | `"off"` | `off` 留头尾；`auto` 词面判定换话题后折叠旧内容；`always` 总是折叠 |
+| `state_marker` | `""` | 你的结构化状态块的标记；带标记的消息永不裁，且任务原文随之可裁 |
 
-A cut carries a marker in place of what was taken:
+裁剪长这样：
 
 ```
 …600 chars…
@@ -46,54 +75,25 @@ A cut carries a marker in place of what was taken:
 …300 chars…
 ```
 
-so both the agent and its human can see what happened, and the middleware can recognise its own work next turn.
+## 证据三层，各管什么
 
-## Structured state instead of raw history
+1. **规则正确性** —— `bun test`：29 个确定性用例（离线、零依赖）。覆盖三种形状的工具配对、protect 在两种模式下生效、代理对不劈开、document 块不动、标记幂等、连续两轮已裁前缀逐字节相同。
+2. **同一请求确实变小** —— `bun benchmark.mjs [request.json] [options]`，或直接在证据页粘贴你的请求。合成样例：47,777 → 14,148 字符，已裁的 27 条消息逐字稳定。
+3. **真实 token / 缓存 / 费用** —— `FOVEA_GATEWAY_KEY=<临时key> bun live-benchmark.mjs`：同模型、同请求、ABBA 四连发，记录供应商返回的 input / cache_read / output token 与耗时，只看暖缓存的第二次。0.1.0 时代的一次实测：163,143 → 42,358 prompt tokens，中位延迟 7.1s → 2.5s（因历史形状与供应商缓存而异）。**账单以 `magpie usage --csv` 的 `cost_usd` 为准；字符百分比不是美元。**
 
-The cheapest history is the history you never had to send. If your agent keeps its own state — the task, the constraints, the decisions already taken, the facts already verified — then the raw task message and the long old tool outputs stop being the only record of that work, and this middleware can thin them.
+## 结构化状态优于压缩
 
-`state_marker` is the contract between the two halves: put the marker in the state block, and
+最便宜的历史是根本不用发的历史。`state_marker` 是两边之间的契约：状态块永不被裁，任务原文不再豁免。[`state-block.example.json`](state-block.example.json) 给了固定维度的形状（目标/验收/约束/决策/带出处的事实/未决问题）。两条让它便宜的规则：
 
-- the state block is never touched, in either mode (`saccade` included)
-- the raw task message no longer earns its protection — the state carries the task, so that message is thinned like any other old content
+- **分两层**：少变的字段（目标、约束、决策）进块、放请求前部；每轮变的（当前步、最近命令结果）放最后一条消息——每轮重写整个块会把它之后的缓存全部打掉。
+- **每条事实带出处**：替换能去掉旧值，但去不掉错值——新不等于对。带出处的错能被便宜地重读发现。
 
-`state-block.example.json` is a starting shape: a small, fixed set of dimensions (goal, acceptance, constraints, decisions, verified facts with their source, open questions). Two rules keep it cheap:
+## 什么时候不该用
 
-- **Split it in two.** Rarely-changing fields (goal, constraints, decisions, verified facts) go in the block, early in the request. Fields that change every turn (current step, last command result) go in the last message instead — a block that changes every round invalidates the provider's cached prefix from that point on, and everything after it is re-read.
-- **Give every fact its source.** Replacing the block each round removes stale values, but it can also replace one wrong value with another: fresh is not the same as true. A fact that names where it came from can be re-read cheaply, or trusted less.
+窗口按条数+预算共同划定，最近窗口里的巨型消息仍然原样保留。裁剪是机械的：它不知道哪条旧细节重要，只知道头尾在哪——如果 agent 的工作依赖逐字重读旧输出，调大 `tool_head`/`tool_tail` 或暂时关掉。`saccade: auto` 是词面判定不是语义理解：改述会被误判、同词异题会漏判，长缓存循环建议 `off`。放在 system/developer 或最近窗口里的压缩摘要不归 fovea 管——那要在生成请求之前决定。缩短历史是否影响答案质量，请在你自己的负载上以开/关对照验证。
 
-Whether this pays off depends on the agent: state that costs more to write than the history it replaces is a loss, and a state block nobody maintains is worse than none. Measure it on your own workload — the plugin's page measures the request side, the usage CSV the billed side.
+## 发布物
 
-## When not to use it
-
-The recent window is kept by message count **and** an approximate token budget; a single huge recent message stays whole when it is among the last `keep_recent` messages. What this middleware does is mechanical — it cannot tell which old detail matters, only where the head and the tail are; if an agent's work turns on re-reading an old tool output verbatim, raise `tool_head`/`tool_tail` or turn the middleware off for that run.
-
-A new cut boundary changes the provider's cached prefix once per `cut_step` block. The other turns within the block keep the already-cut prefix byte-identical. `saccade: auto` can switch between head-and-tail and collapsed text on successive turns, causing additional prompt-cache misses. It uses lexical overlap, not semantic understanding: paraphrases and evolving tasks can be misclassified. Leave it `off` for a long cached tool loop; use `always` only when you know the old history is irrelevant.
-
-**Compressed summaries have a separate limit:** fovea never edits system/developer instructions or the recent window. If your agent inserts its previous-session summary there, `saccade` cannot prevent that summary from being sent. The agent or harness must decide whether to include the summary *before* building the request, or mark the summary in a removable user/assistant message outside the recent window. Do not infer from a shorter request size that a protected summary was omitted.
-
-## Try it locally (no model call)
-
-The preview reads a local request JSON and prints which messages change. It does not send the request or print message bodies:
-
-```sh
-bun packages/fovea/preview.mjs --demo
-bun packages/fovea/preview.mjs /path/to/request.json
-bun packages/fovea/preview.mjs /path/to/request.json '{"keep_recent":4,"protect":["^diff --git "]}'
-```
-
-The numbers are estimated with the middleware's size walk (`chars / 4` for tokens), not a provider tokenizer. On the demo history: about 190,851 → 55,439 estimated tokens. For live usage, compare the provider's `prompt_tokens` and request latency with the middleware on and off; the separate 0.1.0 experiment used 163,143 → 42,358 prompt tokens and a median 7.1s → 2.5s. Results vary by history shape and provider cache.
-
-## Evidence, and what each kind can prove
-
-Three separate claims need three separate kinds of evidence:
-
-1. **The rewrite is sound and bounded.** `bun test packages/fovea` — one file, no network, deterministic. It covers tool pairing in all three request shapes, `protect` honoured in both modes, surrogate-pair cuts, document blocks untouched, marker idempotence, and the cut boundary staying put across consecutive rounds (`fovea.test.mjs`).
-2. **The same request gets smaller, offline.** `bun packages/fovea/benchmark.mjs [request.json] [options]` runs one request through the middleware both ways and writes `page/report.js`: character counts, messages changed, the common-prefix share of consecutive rounds, and whether the already-cut messages are byte-stable. Paste your own request into the plugin's page (Plugins › Fovea evidence) to compute the same numbers in-browser. The report contains no prompt text.
-3. **Real tokens, cache hits and cost.** `FOVEA_GATEWAY_KEY=<temporary local gateway key> bun packages/fovea/live-benchmark.mjs` sends one synthetic request through your local magpie gateway four times — raw, fovea, fovea, raw (ABBA, same model) — and records the provider's returned `input/cache_read/output` tokens and latency, restoring the plugin's options afterwards. Judge it on the warm second call; the page shows the two warm cards. **Caveats:** provider caches and routing are not under our control, `saccade: auto` may legitimately cost cache on a flip, and only magpie's usage CSV (`magpie usage --csv`) shows billed `cost_usd`. Character percentages are not dollars.
-
-What none of these can prove: that shortening history keeps a particular agent's answers equally good. Test that on your own workload with the middleware off and on.
-
-## Mark and visual
-
-`brand/assets/mark.svg` is a transparent 1:1 monochrome mark. Full lines above and below represent preserved context; the three dots represent a visible omission. Light and dark SVG variants, color provenance, an offline review page and 32px browser screenshots are in `brand/`. The ink color `#161616` was sampled from magpie's existing icon; it is a material measurement, not an official brand token.
+- [CHANGELOG.md](CHANGELOG.md) · [LICENSE](LICENSE)（MIT）· [brand/](brand/)（logo 双色 / banner / 品牌审查页）
+- 品牌色 `#2f63a2` 取自「中央凹」隐喻的焦点色；墨色采样自 magpie 既有图标，属实测非官方色板。
+- 致谢：yetone 对早期 context-slim 草稿的评审直接塑造了缓存边界、document、代理对等设计。
