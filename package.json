@@ -10,6 +10,7 @@
     "brand/assets/*.svg",
     "brand/manifest.json",
     "brand/review.html",
+    "build.mjs",
     "cases.json",
     "fovea.middleware.js",
     "fovea.test.mjs",

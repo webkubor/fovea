@@ -1,4 +1,6 @@
 import { test, expect } from "bun:test"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import * as mod from "./fovea.middleware.js"
 import { check, run } from "./scripts/middleware.mjs"
 import { benchmark } from "./benchmark.mjs"
@@ -163,4 +165,25 @@ test("a state block survives a saccade that collapses everything else", async ()
   const r = (await run(mod, { options: { ...options, keep_recent: 1, cut_step: 1, saccade: "always", state_marker: STATE }, request })).request
   expect(r.messages[1].content).toBe(state)
   expect(r.messages[0].content).toBe("[fovea: prior topic not carried]")
+})
+
+test("the page is wired and offline: every id app.js uses exists, and no page file references the network", () => {
+  const html = readFileSync(join(import.meta.dir, "page", "index.html"), "utf8")
+  const js = readFileSync(join(import.meta.dir, "page", "app.js"), "utf8")
+  for (const id of [...js.matchAll(/\$\("([a-z-]+)"\)/g)].map((m) => m[1])) {
+    expect(html.includes(`id="${id}"`)).toBe(true)
+  }
+  for (const f of ["index.html", "style.css", "app.js", "report.js", "live.js"]) {
+    const t = readFileSync(join(import.meta.dir, "page", f), "utf8")
+    expect(t.includes("http://")).toBe(false)
+    expect(t.includes("https://")).toBe(false)
+  }
+})
+
+test("page/measure.js is the middleware, freshly built — a stale bundle fails here, not in magpie", async () => {
+  const src = readFileSync(join(import.meta.dir, "fovea.middleware.js"), "utf8")
+  const expected = src.replace("export function onRequest(", "function onRequest(") + "\nglobalThis.FoveaOnRequest = onRequest;\n"
+  const got = readFileSync(join(import.meta.dir, "page", "measure.js"), "utf8")
+  expect(got).toBe(expected)
+  expect(got.includes("globalThis.FoveaOnRequest")).toBe(true)
 })
