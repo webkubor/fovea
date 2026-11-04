@@ -15,6 +15,31 @@
 
 </div>
 
+<details open>
+<summary><b>English TL;DR</b></summary>
+
+A [magpie](https://usemagpie.ai) gateway middleware for coding agents. Old tool output is the bulk of an agent's history and gets re-billed on every request; fovea keeps the recent window byte-for-byte and thins older tool output and long text to head and tail. Message count, order, ids, tool pairing, thinking signatures and encrypted reasoning are never touched.
+
+The catch with trimming history: **trim a little every turn and the prompt cache misses every turn — the bill goes up.** fovea moves its cut boundary in blocks (`cut_step`, default 24 messages), so the trimmed prefix stays byte-identical and the cache keeps hitting.
+
+| Session (shipped defaults) | Request size | Input cost, cache counted | Cache breaks | A trim that slides every turn |
+|---|---:|---:|---:|---:|
+| Claude Code · Anthropic Messages · 115 turns | −55% | −26% | 9 | +58% cost · 110 breaks |
+| Codex · OpenAI Responses · 65 turns | −49% | −14% | 7 | +81% cost · 59 breaks |
+| Chat Completions · 65 turns | −61% | −21% | 5 | +90% cost · 57 breaks |
+
+49,032 ids, signatures, thinking blocks, encrypted reasoning items and cache breakpoints compared byte for byte over 248 requests: 0 changed. Cost is modelled from request chars with each vendor's cache multipliers, not a bill; your bill is `magpie usage --csv`.
+
+```sh
+magpie plugin add fovea                                 # the reviewed magpie-community package
+git clone https://github.com/webkubor/fovea && cd fovea
+bun test && bun scripts/metrics.mjs                     # offline, no key: reproduces every number above
+```
+
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-cache-en.png" alt="Cumulative input cost over one Claude Code session: fovea, no middleware, and a trim that slides every turn; request size, cost and cache-break counts on the right" width="820"/></p>
+
+</details>
+
 ---
 
 一个会读文件、跑命令的 coding agent，历史很快堆到几十万 token——其中大头是很多轮之前的工具输出。**这些内容每发一次请求都要重新计费一次，而它们是整段历史里寿命最短的部分。** fovea 在网关上把它裁薄：最近窗口原样保留，旧工具输出和长文本只留头尾，几轮前的图换成一行注记。
