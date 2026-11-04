@@ -1,0 +1,338 @@
+<!doctype html>
+<!--
+  Promo cards for fovea. Every number on them is read from promo/metrics.js,
+  which bun scripts/metrics.mjs writes from the same sessions the probe test
+  asserts on; none is typed here. If the numbers stop supporting the copy
+  (fovea no longer cheaper, the naive trim no longer dearer), the card says
+  so in red instead of rendering a claim the data does not make.
+
+    chart.html?card=cache&lang=en    cost over a whole session
+    chart.html?card=knob&lang=zh     the cut_step sweep, and every protocol
+
+  bun scripts/promo.mjs renders all four to PNG at 3200x1800.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>fovea — measured</title>
+<script src="metrics.js"></script>
+<style>
+:root{--bg:#101821;--panel:#141f2b;--ink:#e8eef5;--muted:#9fb4c8;--dim:#6b8095;--grid:#223142;--eye:#8dbbf5;--deep:#2f63a2;--warn:#f0a35e;--base:#8796a6;--ok:#7fd6a4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1600px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Display","PingFang SC","Hiragino Sans GB","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{position:relative;padding:48px 64px 0}
+code,.mono{font-family:"SF Mono",Menlo,Consolas,monospace}
+.glow{position:absolute;right:-260px;top:-300px;width:980px;height:980px;border-radius:50%;background:radial-gradient(circle,rgba(47,99,162,.32),rgba(47,99,162,0) 68%);pointer-events:none}
+header{position:relative;display:flex;align-items:center;gap:14px;height:44px}
+header svg{width:42px;height:42px}
+header b{font-size:30px;font-weight:700;letter-spacing:.3px}
+header .what{font-size:21px;color:var(--muted)}
+header .install{margin-left:auto;font-size:18px;font-weight:600;color:var(--eye);background:rgba(141,187,245,.08);border:1.5px solid rgba(141,187,245,.35);border-radius:999px;padding:9px 18px}
+h1{position:relative;margin-top:24px;font-size:62px;line-height:1.12;font-weight:800;letter-spacing:-.5px}
+h1 code{font-size:.88em;color:var(--eye);font-weight:700}
+.sub{position:relative;margin-top:12px;font-size:25px;line-height:1.42;color:var(--muted);max-width:1460px}
+.sub em{font-style:normal;color:var(--ink);font-weight:700}
+.sub .up{color:var(--warn);font-weight:700}
+main{position:absolute;left:64px;right:64px;top:304px;height:466px;display:flex;gap:44px}
+.chart{flex:1;min-width:0}
+.chart h2,aside h2{font-size:19px;font-weight:600;color:var(--muted);letter-spacing:.2px;height:26px}
+.chart svg{display:block;margin-top:6px;overflow:visible}
+aside{display:flex;flex-direction:column;justify-content:space-between}
+aside.stats{width:470px;padding:6px 0 4px}
+.stat{border-left:4px solid var(--eye);padding:2px 0 2px 22px}
+.stat.warn{border-color:var(--warn)}
+.stat .n{font-size:82px;font-weight:800;line-height:1;color:var(--eye);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.stat .n small{font-size:42px;font-weight:700;color:var(--warn);letter-spacing:0}
+.stat .l{margin-top:8px;font-size:20px;line-height:1.35;color:var(--muted)}
+aside.protos{width:540px}
+.proto{background:var(--panel);border:1px solid var(--grid);border-radius:14px;padding:12px 20px 12px}
+.proto .t{display:flex;justify-content:space-between;align-items:baseline;font-size:20px;font-weight:700}
+.proto .t span{font-weight:500;color:var(--muted);font-size:16px}
+.proto .row{display:flex;margin-top:4px}
+.proto .row div{flex:1}
+.proto .v{font-size:36px;font-weight:800;line-height:1.1;color:var(--eye);font-variant-numeric:tabular-nums}
+.proto .k{font-size:15px;color:var(--muted)}
+.proto .naive{margin-top:6px;font-size:15.5px;color:var(--warn)}
+footer{position:absolute;left:64px;right:64px;top:792px}
+.check{font-size:21px;color:var(--ink)}
+.check b{color:var(--ok)}
+.fine{margin-top:10px;font-size:15.5px;line-height:1.45;color:var(--dim)}
+.fine code{color:var(--muted)}
+.broken{position:absolute;inset:0;background:#3a0d0d;color:#ffd2d2;font:700 34px/1.4 -apple-system,sans-serif;padding:80px;z-index:9;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<header>
+  <svg viewBox="0 0 128 128" aria-hidden="true">
+    <circle cx="64" cy="64" r="58" fill="none" stroke="#e8eef5" stroke-opacity="0.22" stroke-width="6"/>
+    <circle cx="64" cy="64" r="42" fill="none" stroke="#e8eef5" stroke-opacity="0.5" stroke-width="7"/>
+    <circle cx="64" cy="64" r="25" fill="none" stroke="#e8eef5" stroke-opacity="0.9" stroke-width="8"/>
+    <circle cx="64" cy="64" r="10" fill="#8dbbf5"/>
+  </svg>
+  <b>fovea</b><span class="what" id="what"></span>
+  <span class="install mono" id="install"></span>
+</header>
+<h1 id="h1"></h1>
+<p class="sub" id="sub"></p>
+<main id="main"></main>
+<footer><div class="check" id="check"></div><div class="fine" id="fine"></div></footer>
+<script>
+const M = globalThis.FoveaMetrics
+const q = new URLSearchParams(location.search)
+const lang = q.get("lang") === "zh" ? "zh" : "en"
+const card = q.get("card") === "knob" ? "knob" : "cache"
+document.documentElement.lang = lang === "zh" ? "zh-CN" : "en"
+
+const MINUS = "\u2212"
+const pc = (v) => { const r = Math.round(v); return (r > 0 ? "+" : r < 0 ? MINUS : "") + Math.abs(r) + "%" }
+const abs = (v) => Math.abs(Math.round(v)) + "%"
+const kchars = (n) => Math.round(n / 1000) + "K"
+const thousands = (n) => n.toLocaleString("en-US")
+const shape = (id) => M.shapes.find((s) => s.id === id)
+const cc = shape("claude-code")
+const def = M.options.cut_step
+const firstWin = M.sweep.find((r) => r.cost_pct < 0)
+const mult = (p) => `read ${p.read}×, write ${p.write}×`
+const multZh = (p) => `读 ${p.read}×、写 ${p.write}×`
+
+// The copy makes claims; check the data still makes them.
+const broken = []
+if (!M) throw new Error("promo/metrics.js missing: run bun scripts/metrics.mjs")
+for (const s of M.shapes) {
+  if (!(s.cost.fovea_pct < 0)) broken.push(`${s.name}: fovea cost ${s.cost.fovea_pct}% is not lower`)
+  if (!(s.cost.naive_pct > 0)) broken.push(`${s.name}: slide-every-turn cost ${s.cost.naive_pct}% is not higher`)
+  if (!(s.size.change_pct < 0)) broken.push(`${s.name}: request size did not shrink`)
+}
+if (!firstWin) broken.push("no cut_step in the sweep is cheaper than no middleware")
+if (!M.sweep.some((r) => r.cut_step === def)) broken.push(`shipped cut_step ${def} is not in the sweep`)
+if (M.contract.changed !== 0) broken.push(`${M.contract.changed} protected values changed`)
+
+const CLIENT = { en: { "claude-code": "Claude Code", codex: "Codex", chat: "Chat agent" }, zh: { "claude-code": "Claude Code", codex: "Codex", chat: "Chat 客户端" } }
+const stamp = `fovea ${M.version} @ ${M.commit || "?"}`
+const turnsAll = M.contract.turns
+
+const T = {
+  en: {
+    what: "magpie gateway middleware",
+    check: `✓ <b>${thousands(M.contract.compared)}</b> ids, signatures, thinking blocks, encrypted reasoning and cache breakpoints over ${turnsAll} requests in three protocols: <b>${M.contract.changed} changed</b>`,
+    cache: {
+      h1: "Cut the context. Keep the cache.",
+      sub: `Same Claude Code session, 120 turns in: requests <em>${abs(cc.size.change_pct)} smaller</em>, input cost <em>${abs(cc.cost.fovea_pct)} lower</em> with the prompt cache counted. Trim a little every turn instead and the cache misses every turn — <span class="up">the bill goes up ${abs(cc.cost.naive_pct)}</span>.`,
+      h2: "Cumulative input cost · no middleware at turn 120 = 100",
+      axis: "turn",
+      lines: { fovea: "fovea", base: "no middleware", naive: "trim that slides every turn" },
+      stats: [
+        { n: pc(cc.size.change_pct), l: `request at turn 120 · ${kchars(cc.size.before)} → ${kchars(cc.size.after)} chars` },
+        { n: pc(cc.cost.fovea_pct), l: "input cost, prompt cache counted (modelled)" },
+        { n: `${cc.cache_breaks.fovea}<small> vs ${cc.cache_breaks.naive}</small>`, l: `prompt-cache breaks in ${cc.turns} turns · fovea vs a trim that slides every turn` },
+      ],
+      fine: `Synthetic Claude Code-shaped session (Anthropic Messages: 6k-char tool outputs, thinking with signatures, an old image), offline and reproducible: <code>bun scripts/metrics.mjs</code> · ${stamp}. Cost = request chars × Anthropic cache multipliers (${mult(cc.pricing)}). Savings depend on your history's shape; your bill is <code>magpie usage --csv</code>.`,
+    },
+    knob: {
+      h1: "One knob, measured: <code>cut_step</code>",
+      sub: `How far the cut boundary jumps at a time. Small steps thin a little more but move the cached prefix every turn, and the cache writes cost more than the trim saves. From <em>${firstWin?.cut_step}</em> up the cache wins. Shipped default: <em>${def}</em>.`,
+      h2: `Claude Code session, ${cc.turns} turns · change vs no middleware`,
+      legend: ["input cost (modelled)", "mean request size"],
+      def: "shipped default",
+      axis: `cut_step  ·  small numbers: prompt-cache breaks in ${cc.turns} turns`,
+      aside: "Every protocol, shipped defaults",
+      keys: ["request", "input cost", "cache breaks"],
+      turns: (n) => `${n} turns`,
+      naive: (s) => `trim that slides every turn: ${pc(s.cost.naive_pct)} cost · ${s.cache_breaks.naive} breaks`,
+      fine: `Synthetic sessions shaped like each client, offline and reproducible: <code>bun scripts/metrics.mjs</code> · ${stamp}. Request = what the gateway sends upstream at the last turn. Cost = chars × each vendor's cache multipliers (Anthropic ${mult(M.cost_model.pricing.anthropic)}; OpenAI ${mult(M.cost_model.pricing.openai)}). Your bill: <code>magpie usage --csv</code>.`,
+    },
+  },
+  zh: {
+    what: "magpie 网关中间件",
+    check: `✓ 三种协议共 ${turnsAll} 个请求，<b>${thousands(M.contract.compared)}</b> 处 id、签名、thinking、加密推理和缓存断点逐字节比对：<b>${M.contract.changed} 处改动</b>`,
+    cache: {
+      h1: "裁掉旧上下文，缓存照样命中。",
+      sub: `同一个 Claude Code 会话跑到第 120 轮：请求<em>小 ${abs(cc.size.change_pct)}</em>，计入 prompt cache 后输入成本<em>低 ${abs(cc.cost.fovea_pct)}</em>。换成每轮都裁一点，缓存每轮都被打断，<span class="up">账单反而涨 ${abs(cc.cost.naive_pct)}</span>。`,
+      h2: "累计输入成本 · 不装中间件到第 120 轮 = 100",
+      axis: "轮次",
+      lines: { fovea: "fovea", base: "不装中间件", naive: "每轮滑动裁剪" },
+      stats: [
+        { n: pc(cc.size.change_pct), l: `第 120 轮的请求体 · ${kchars(cc.size.before)} → ${kchars(cc.size.after)} 字符` },
+        { n: pc(cc.cost.fovea_pct), l: "输入成本，计入 prompt cache（模型估算）" },
+        { n: `${cc.cache_breaks.fovea}<small> vs ${cc.cache_breaks.naive}</small>`, l: `${cc.turns} 轮里 prompt cache 前缀被打断的次数 · fovea 对比每轮滑动裁剪` },
+      ],
+      fine: `合成的 Claude Code 形状会话（Anthropic Messages：6k 字符工具输出、带签名的 thinking、一张旧图），离线可复现：<code>bun scripts/metrics.mjs</code> · ${stamp}。成本 = 请求字符 × Anthropic 缓存倍率（${multZh(cc.pricing)}）。能省多少取决于你的历史形状；实际账单以 <code>magpie usage --csv</code> 为准。`,
+    },
+    knob: {
+      h1: "一个参数，量化给你看：<code>cut_step</code>",
+      sub: `裁剪边界一次跳多远。步子越小裁得略多，但缓存前缀每轮都在动，写缓存花的比裁掉省的还多；从 <em>${firstWin?.cut_step}</em> 开始缓存收益占上风。默认值 <em>${def}</em>。`,
+      h2: `Claude Code 会话 ${cc.turns} 轮 · 相对不装中间件的变化`,
+      legend: ["输入成本（模型估算）", "平均请求体"],
+      def: "默认值",
+      axis: `cut_step  ·  下方小字：${cc.turns} 轮里缓存前缀被打断的次数`,
+      aside: "三种协议，默认参数",
+      keys: ["请求体", "输入成本", "缓存打断"],
+      turns: (n) => `${n} 轮`,
+      naive: (s) => `每轮滑动裁剪：成本 ${pc(s.cost.naive_pct)} · 打断 ${s.cache_breaks.naive} 次`,
+      fine: `按各客户端形状合成的会话，离线可复现：<code>bun scripts/metrics.mjs</code> · ${stamp}。请求体 = 网关发往上游的最后一轮请求。成本 = 字符 × 各厂商缓存倍率（Anthropic ${multZh(M.cost_model.pricing.anthropic)}；OpenAI ${multZh(M.cost_model.pricing.openai)}）。实际账单以 <code>magpie usage --csv</code> 为准。`,
+    },
+  },
+}
+
+const t = T[lang], c = t[card]
+const $ = (id) => document.getElementById(id)
+$("what").textContent = t.what
+$("install").textContent = "magpie plugin add " + M.package
+$("h1").innerHTML = c.h1
+$("sub").innerHTML = c.sub
+$("check").innerHTML = t.check
+$("fine").innerHTML = c.fine
+
+const NS = "http://www.w3.org/2000/svg"
+function el(parent, tag, attrs = {}, text) {
+  const e = document.createElementNS(NS, tag)
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v)
+  if (text != null) e.textContent = text
+  parent.appendChild(e)
+  return e
+}
+const label = { "font-family": "-apple-system, 'PingFang SC', sans-serif", fill: "#9fb4c8" }
+const halo = { "paint-order": "stroke", stroke: "#101821", "stroke-width": 6, "stroke-linejoin": "round" }
+
+function section(title, w, h) {
+  const s = document.createElement("section")
+  s.className = "chart"
+  const h2 = document.createElement("h2")
+  h2.textContent = title
+  s.appendChild(h2)
+  const svg = document.createElementNS(NS, "svg")
+  svg.setAttribute("width", w); svg.setAttribute("height", h); svg.setAttribute("viewBox", `0 0 ${w} ${h}`)
+  s.appendChild(svg)
+  $("main").appendChild(s)
+  return svg
+}
+
+// ── card 1: cumulative cost over the session ───────────────────────────
+function costChart(svg, W, H) {
+  const s = cc.series
+  const norm = s.at(-1).cost_baseline
+  const L = 58, R = 236, Tp = 10, B = 46
+  const x0 = s[0].turn, x1 = s.at(-1).turn
+  const yMax = Math.ceil(Math.max(...s.map((r) => r.cost_naive / norm * 100)) / 40) * 40
+  const X = (v) => L + (v - x0) / (x1 - x0) * (W - L - R)
+  const Y = (v) => Tp + (1 - v / yMax) * (H - Tp - B)
+  for (let v = 0; v <= yMax; v += 40) {
+    el(svg, "line", { x1: L, x2: W - R + 8, y1: Y(v), y2: Y(v), stroke: v === 0 ? "#3a4c60" : "#223142", "stroke-width": v === 0 ? 2 : 1.2 })
+    el(svg, "text", { ...label, x: L - 12, y: Y(v) + 6, "text-anchor": "end", "font-size": 17 }, String(v))
+  }
+  for (const v of [20, 40, 60, 80, 100, 120].filter((v) => v >= x0 && v <= x1)) {
+    el(svg, "text", { ...label, x: X(v), y: Y(0) + 28, "text-anchor": "middle", "font-size": 17 }, String(v))
+  }
+  el(svg, "text", { ...label, x: W - R + 8, y: Y(0) + 28, "text-anchor": "end", "font-size": 15, fill: "#6b8095" }, t[card].axis)
+  const path = (key) => s.map((r, i) => `${i ? "L" : "M"}${X(r.turn).toFixed(1)},${Y(r[key] / norm * 100).toFixed(1)}`).join("")
+  const lines = [
+    { key: "cost_baseline", color: "#8796a6", width: 3, dash: "", name: c.lines.base },
+    { key: "cost_naive", color: "#f0a35e", width: 3.5, dash: "10 8", name: c.lines.naive },
+    { key: "cost_fovea", color: "#8dbbf5", width: 6, dash: "", name: c.lines.fovea },
+  ]
+  for (const ln of lines) {
+    el(svg, "path", { d: path(ln.key), fill: "none", stroke: ln.color, "stroke-width": ln.width, "stroke-dasharray": ln.dash, "stroke-linejoin": "round", "stroke-linecap": "round" })
+  }
+  // end labels, nudged apart so they never overlap
+  const ends = lines.map((ln) => {
+    const v = s.at(-1)[ln.key] / norm * 100
+    const value = ln.key === "cost_baseline" ? "100" : pc(v - 100)
+    return { ...ln, v, value, y: Y(v) }
+  }).sort((a, b) => a.y - b.y)
+  for (let i = 1; i < ends.length; i++) ends[i].ly = Math.max(ends[i].y, (ends[i - 1].ly ?? ends[i - 1].y) + 56)
+  ends[0].ly = ends[0].y
+  for (const e of ends) {
+    el(svg, "circle", { cx: X(x1), cy: e.y, r: 7, fill: e.color, stroke: "#101821", "stroke-width": 3 })
+    const g = el(svg, "text", { x: X(x1) + 20, y: e.ly - 2, "font-family": "-apple-system, 'PingFang SC', sans-serif" })
+    el(g, "tspan", { x: X(x1) + 20, "font-size": 28, "font-weight": 800, fill: e.color }, e.value)
+    el(g, "tspan", { x: X(x1) + 20, dy: 24, "font-size": 16, fill: "#9fb4c8" }, e.name)
+  }
+}
+
+function stats() {
+  const a = document.createElement("aside")
+  a.className = "stats"
+  c.stats.forEach((s, i) => {
+    const d = document.createElement("div")
+    d.className = "stat"
+    d.innerHTML = `<div class="n">${s.n}</div><div class="l">${s.l}</div>`
+    a.appendChild(d)
+  })
+  $("main").appendChild(a)
+}
+
+// ── card 2: the cut_step sweep, and every protocol ─────────────────────
+function sweepChart(svg, W, H) {
+  const rows = M.sweep
+  const L = 62, R = 8, Tp = 70, B = 98
+  const lo = Math.floor(Math.min(...rows.map((r) => Math.min(r.cost_pct, r.mean_size_pct))) / 20) * 20
+  const hi = Math.ceil(Math.max(...rows.map((r) => r.cost_pct)) / 20) * 20
+  const band = (W - L - R) / rows.length
+  const X = (i) => L + band * (i + 0.5)
+  const Y = (v) => Tp + (hi - v) / (hi - lo) * (H - Tp - B)
+  // legend
+  el(svg, "circle", { cx: L + 8, cy: 14, r: 7, fill: "#8dbbf5" })
+  el(svg, "text", { ...label, x: L + 22, y: 20, "font-size": 17 }, c.legend[0])
+  const lx = L + 40 + c.legend[0].length * (lang === "zh" ? 17 : 8.6)
+  el(svg, "rect", { x: lx, y: 6, width: 14, height: 16, rx: 3, fill: "#2f63a2" })
+  el(svg, "text", { ...label, x: lx + 22, y: 20, "font-size": 17 }, c.legend[1])
+  // the shipped default
+  const di = rows.findIndex((r) => r.cut_step === def)
+  el(svg, "rect", { x: L + band * di + 3, y: Tp - 26, width: band - 6, height: H - Tp - B + 26 + 64, rx: 10, fill: "rgba(141,187,245,0.10)", stroke: "rgba(141,187,245,0.35)", "stroke-width": 1.5 })
+  el(svg, "text", { x: X(di), y: Tp - 34, "text-anchor": "middle", "font-size": 16, "font-weight": 700, fill: "#8dbbf5", "font-family": "-apple-system, 'PingFang SC', sans-serif" }, c.def)
+  for (let v = lo; v <= hi; v += 20) {
+    el(svg, "line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: v === 0 ? "#4a5e74" : "#223142", "stroke-width": v === 0 ? 2.2 : 1.2 })
+    el(svg, "text", { ...label, x: L - 10, y: Y(v) + 6, "text-anchor": "end", "font-size": 16 }, v === 0 ? "0" : pc(v))
+  }
+  rows.forEach((r, i) => {
+    const y0 = Y(0), y1 = Y(r.mean_size_pct)
+    el(svg, "rect", { x: X(i) - band * 0.22, y: Math.min(y0, y1), width: band * 0.44, height: Math.abs(y1 - y0), rx: 3, fill: "#2f63a2", "fill-opacity": 0.75 })
+    el(svg, "text", { x: X(i), y: y1 + 20, "text-anchor": "middle", "font-size": 14, fill: "#7fa9d9", "font-family": "-apple-system, sans-serif" }, pc(r.mean_size_pct))
+  })
+  el(svg, "path", { d: rows.map((r, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(r.cost_pct).toFixed(1)}`).join(""), fill: "none", stroke: "#e8eef5", "stroke-opacity": 0.55, "stroke-width": 2.5 })
+  rows.forEach((r, i) => {
+    const color = r.cost_pct > 0 ? "#f0a35e" : "#8dbbf5"
+    el(svg, "circle", { cx: X(i), cy: Y(r.cost_pct), r: 7.5, fill: color, stroke: "#101821", "stroke-width": 3 })
+    el(svg, "text", { ...halo, x: X(i), y: Y(r.cost_pct) - 16, "text-anchor": "middle", "font-size": 18, "font-weight": 800, fill: color, "font-family": "-apple-system, sans-serif" }, pc(r.cost_pct))
+    const isDef = r.cut_step === def
+    el(svg, "text", { x: X(i), y: Y(lo) + 30, "text-anchor": "middle", "font-size": 21, "font-weight": isDef ? 800 : 600, fill: isDef ? "#8dbbf5" : "#e8eef5", "font-family": "'SF Mono', Menlo, monospace" }, String(r.cut_step))
+    el(svg, "text", { x: X(i), y: Y(lo) + 54, "text-anchor": "middle", "font-size": 15, fill: "#6b8095", "font-family": "-apple-system, sans-serif" }, String(r.cache_breaks))
+  })
+  el(svg, "text", { ...label, x: L, y: H - 4, "font-size": 15, fill: "#6b8095" }, c.axis)
+}
+
+function protos() {
+  const a = document.createElement("aside")
+  a.className = "protos"
+  a.innerHTML = `<h2>${c.aside}</h2>`
+  for (const s of M.shapes) {
+    const d = document.createElement("div")
+    d.className = "proto"
+    d.innerHTML = `<div class="t">${s.protocol}<span>${CLIENT[lang][s.id]} · ${c.turns(s.turns)}</span></div>
+      <div class="row"><div><div class="v">${pc(s.size.change_pct)}</div><div class="k">${c.keys[0]}</div></div>
+      <div><div class="v">${pc(s.cost.fovea_pct)}</div><div class="k">${c.keys[1]}</div></div>
+      <div><div class="v">${s.cache_breaks.fovea}</div><div class="k">${c.keys[2]}</div></div></div>
+      <div class="naive">${c.naive(s)}</div>`
+    a.appendChild(d)
+  }
+  $("main").appendChild(a)
+}
+
+if (card === "cache") {
+  costChart(section(c.h2, 958, 434), 958, 434)
+  stats()
+} else {
+  sweepChart(section(c.h2, 888, 434), 888, 434)
+  protos()
+}
+
+if (broken.length) {
+  const b = document.createElement("div")
+  b.className = "broken"
+  b.textContent = "metrics.json no longer supports this card's copy:\n\n" + broken.join("\n")
+  document.body.appendChild(b)
+}
+</script>
+</body>
+</html>
