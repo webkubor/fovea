@@ -37,7 +37,7 @@
 - 🧊 **cut_step：为 prompt cache 而生** —— 裁剪边界只按块移动，块内已裁前缀逐字节稳定，缓存能连续命中；跨块才失效一次（这是对上游评审 §1 的正面回答，有两轮回归测试锁死）。
 - 🧾 **state_marker：你的结构化状态取代原始任务消息** —— agent 自己维护的任务/约束/决策 JSON 块永不被裁，同时原始任务原文不再享受豁免，按普通旧内容裁掉。
 
-<p align="center"><img src="promo/fovea-cache-zh.png" alt="同一个 Claude Code 会话的累计输入成本：fovea、不装中间件、每轮滑动裁剪三条曲线，右侧是请求体、成本与缓存打断次数" width="820"/></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-cache-zh.png" alt="同一个 Claude Code 会话的累计输入成本：fovea、不装中间件、每轮滑动裁剪三条曲线，右侧是请求体、成本与缓存打断次数" width="820"/></p>
 
 <sub>图上每个数字都来自 `bun scripts/metrics.mjs`（离线、可复现），见下方「证据三层」。</sub>
 
@@ -90,7 +90,7 @@ git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 47/47，
 2. **同一请求确实变小** —— `bun benchmark.mjs [request.json] [options]`，或直接在证据页粘贴你的请求。合成样例：47,777 → 14,148 字符，已裁的 27 条消息逐字稳定。整段会话的量化指标（三种协议的请求体、计入缓存的成本、`cut_step` 扫描）：`bun scripts/metrics.mjs` 写出 [`promo/metrics.json`](promo/metrics.json)，推广图 [`promo/`](promo/) 的每个数字都读自这里。
 3. **真实 token / 缓存 / 费用** —— `FOVEA_GATEWAY_KEY=<临时key> bun live-benchmark.mjs`：同模型、同请求、ABBA 四连发，记录供应商返回的 input / cache_read / output token 与耗时，只看暖缓存的第二次。0.1.0 时代的一次实测：163,143 → 42,358 prompt tokens，中位延迟 7.1s → 2.5s（因历史形状与供应商缓存而异）。**账单以 `magpie usage --csv` 的 `cost_usd` 为准；字符百分比不是美元。**
 
-<p align="center"><img src="promo/fovea-knob-zh.png" alt="cut_step 从 1 到 96 的扫描：输入成本与平均请求体随步长的变化，默认值 24 高亮；右侧是三种协议在默认参数下的结果" width="820"/></p>
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-knob-zh.png" alt="cut_step 从 1 到 96 的扫描：输入成本与平均请求体随步长的变化，默认值 24 高亮；右侧是三种协议在默认参数下的结果" width="820"/></p>
 
 ## 结构化状态优于压缩
 
