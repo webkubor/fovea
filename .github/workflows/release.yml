@@ -1,0 +1,47 @@
+# Releases ship only through a merged pull request. When a PR that carries
+# the `release` label merges, this workflow re-runs the suite, proves the
+# version bookkeeping agrees (package.json == CHANGELOG == README badge),
+# then tags v<x.y.z> and writes the release notes from the matching
+# CHANGELOG section. Nothing here runs on a direct push to main.
+name: release
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun test
+      - run: bun scripts/release.mjs check
+      - name: tag and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(bun -e 'console.log(JSON.parse(require("fs").readFileSync("package.json","utf8")).version)')
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "tag v$VERSION already exists, stopping" && exit 1
+          fi
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { on = 1; next }
+            /^## \[/ && on { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "CHANGELOG has no content for $VERSION, stopping" && exit 1
+          fi
+          gh release create "v$VERSION" \
+            --title "fovea $VERSION" \
+            --notes-file notes.md \
+            --target "$GITHUB_SHA"

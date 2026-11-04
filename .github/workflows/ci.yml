@@ -14,5 +14,6 @@ jobs:
         with:
           bun-version: latest
       - run: bun test
+      - run: bun scripts/release.mjs check
       - name: package contents match the manifest
         run: bun pm pack --dry-run
