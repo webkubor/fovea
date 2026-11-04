@@ -401,7 +401,7 @@
         {
           "role": "tool",
           "tool_call_id": "c",
-          "content": "LLLLLLLLLL\n[fovea: 285 chars of old tool output omitted]\nLLLLL"
+          "content": "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\n[fovea: 285 chars of old tool output omitted]\nLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
         },
         {
           "role": "user",
