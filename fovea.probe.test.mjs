@@ -162,3 +162,50 @@ test("drop_old_images: false keeps an old image, in a message and inside a tool 
   expect(dropped.messages[6].content[2].type).toBe("text")
   expect(dropped.messages[8].content[0].content[1].type).toBe("text")
 })
+
+// ── harness 注入的块不是用户的话 ──────────────────────────────────────
+// Claude Code 把 <system-reminder> 作为自己的 user 消息追加：token 预算、
+// 工具指引、文件变更通知。它讲的不是用户的问题，与任务没有共同词，
+// 词面判定会以为换了话题，把整段历史折叠掉（2026-11-05 对抗验收发现）。
+
+const REMINDER = "<system-reminder>\nAs you answer the user's questions, you can use the following context: the user has 12000 weighted tokens left. Do not use any other tools.\n</system-reminder>"
+
+// The task must not share words with the reminder: the topic test is a
+// word-overlap ratio, and one shared word ("context" once did) is enough to
+// mask the bug — the case passed with the guard removed.
+const REMINDER_TASK = "Fix the flaky scheduler test in internal/sched: the retry timing assertion fails under load. " + "zz ".repeat(200)
+
+function claudeWithReminder(rounds, trailing) {
+  const raw = claudeCode(rounds)
+  raw.messages[0].content[0].text = REMINDER_TASK
+  raw.messages.push({ role: "user", content: [{ type: "text", text: "the scheduler retry timing assertion still fails, keep going" }] })
+  if (trailing) raw.messages.push({ role: "user", content: [{ type: "text", text: REMINDER }] })
+  return raw
+}
+
+test("Claude Code Messages, saccade auto: a trailing system-reminder is not the user asking a new question", () => {
+  const options = { ...DEFAULTS, saccade: "auto", keep_recent: 1, keep_recent_tokens: 0, cut_step: 1 }
+  for (const trailing of [false, true]) {
+    const raw = claudeWithReminder(120, trailing)
+    const sent = send(raw, options)
+    expect(json(sent)).not.toContain("prior topic not carried")
+  }
+})
+
+test("Claude Code Messages, saccade auto: a real new topic still collapses, with or without a system-reminder", () => {
+  const options = { ...DEFAULTS, saccade: "auto", keep_recent: 1, keep_recent_tokens: 0, cut_step: 1 }
+  for (const trailing of [false, true]) {
+    const raw = claudeWithReminder(120, trailing)
+    raw.messages.push({ role: "user", content: [{ type: "text", text: "unrelated: draft a release announcement email aimed at marketing newsletter readers" }] })
+    expect(json(send(raw, options))).toContain("prior topic not carried")
+  }
+})
+
+test("Claude Code Messages, saccade auto: a system-reminder inside the task message does not become the task", () => {
+  const options = { ...DEFAULTS, saccade: "auto", keep_recent: 1, keep_recent_tokens: 0, cut_step: 1 }
+  const raw = claudeCode(120)
+  raw.messages[0].content[0].text = REMINDER_TASK
+  raw.messages[0].content.push({ type: "text", text: REMINDER })
+  raw.messages.push({ role: "user", content: [{ type: "text", text: "the scheduler retry timing assertion still fails, keep going" }] })
+  expect(json(send(raw, options))).not.toContain("prior topic not carried")
+})
