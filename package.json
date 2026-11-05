@@ -1,6 +1,6 @@
 {
   "name": "fovea",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "magpie gateway middleware: keep the recent window sharp, thin old history to head and tail, and on a saccade drop the old context on a new topic — with an evidence page",
   "type": "module",
   "files": [
@@ -13,6 +13,7 @@
     "build.mjs",
     "cases.json",
     "fovea.middleware.js",
+    "fovea.protocols.test.mjs",
     "fovea.test.mjs",
     "page/*",
     "preview.mjs",

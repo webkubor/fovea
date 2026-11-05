@@ -7,8 +7,8 @@
 **magpie 网关中间件：最近窗口看得清，之前的旧历史只带轮廓。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2f63a2.svg?style=for-the-badge)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v0.2.3-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
-[![Tests](https://img.shields.io/badge/tests-47%2F47-brightgreen?style=for-the-badge)](#证据三层各管什么)
+[![Release](https://img.shields.io/badge/release-v0.2.5-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
+[![Tests](https://img.shields.io/badge/tests-74%2F74-brightgreen?style=for-the-badge)](#证据三层各管什么)
 [![Platform](https://img.shields.io/badge/magpie-middleware-8a6bbf?style=for-the-badge)](https://usemagpie.ai)
 [![magpie community](https://img.shields.io/badge/magpie%20community-listed-8a6bbf?style=for-the-badge)](https://github.com/magpie-community/plugins/tree/main/packages/fovea)
 [![Runtime](https://img.shields.io/badge/runtime-moejs%20%C2%B7%20zero%20deps-4a5568?style=for-the-badge)](fovea.middleware.js)
@@ -80,7 +80,7 @@ magpie plugin options fovea '{"state_marker":"<!-- fovea:state -->"}'
 装完在 magpie 窗口 **Plugins › Fovea evidence** 打开证据页：粘贴你自己的请求 JSON，浏览器里现算前后差异（不联网、不保存正文）。想先看代码再装：
 
 ```sh
-git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 47/47，无需任何依赖
+git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 74/74，无需任何依赖
 ```
 
 ---
@@ -111,7 +111,7 @@ git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 47/47，
 
 ## 证据三层，各管什么
 
-1. **规则正确性** —— `bun test`：47 个确定性用例（离线、零依赖）。覆盖三种形状的工具配对、protect 在两种模式下生效、代理对不劈开、document 块不动、标记幂等、连续两轮已裁前缀逐字节相同；另有 Claude Code / Codex / Chat 三种形状的整段会话探针，逐轮断言 id、签名、加密推理和缓存断点不变，缓存前缀按块断开，算上缓存比不装更便宜。`bun scripts/mutate.mjs` 把 20 处契约保护逐一改坏，每一处都必须让测试变红（CI 里跑）。
+1. **规则正确性** —— `bun test`：74 个确定性用例（离线、零依赖）。覆盖三种形状的工具配对、protect 在两种模式下生效、代理对不劈开、document 块不动、标记幂等、连续两轮已裁前缀逐字节相同；另有 Claude Code / Codex / Chat 三种形状的整段会话探针，逐轮断言 id、签名、加密推理和缓存断点不变，缓存前缀按块断开，算上缓存比不装更便宜。`bun scripts/mutate.mjs` 把 26 处契约保护逐一改坏，每一处都必须让测试变红（CI 里跑）。
 2. **同一请求确实变小** —— `bun benchmark.mjs [request.json] [options]`，或直接在证据页粘贴你的请求。合成样例：47,777 → 14,148 字符，已裁的 27 条消息逐字稳定。整段会话的量化指标（三种协议的请求体、计入缓存的成本、`cut_step` 扫描）：`bun scripts/metrics.mjs` 写出 [`promo/metrics.json`](promo/metrics.json)，推广图 [`promo/`](promo/) 的每个数字都读自这里。
 3. **真实 token / 缓存 / 费用** —— `FOVEA_GATEWAY_KEY=<临时key> bun live-benchmark.mjs`：同模型、同请求、ABBA 四连发，记录供应商返回的 input / cache_read / output token 与耗时，只看暖缓存的第二次。0.1.0 时代的一次实测：163,143 → 42,358 prompt tokens，中位延迟 7.1s → 2.5s（因历史形状与供应商缓存而异）。**账单以 `magpie usage --csv` 的 `cost_usd` 为准；字符百分比不是美元。**
 

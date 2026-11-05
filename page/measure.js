@@ -21,12 +21,15 @@
 //   {"protect": []}               regexes whose matches are left whole
 //                                 (e.g. "^diff --git ", "BEGIN .*PRIVATE KEY")
 //   {"state_marker": ""}          a marker the agent's own structured
-//                                 state block carries. A message with the
-//                                 marker is never touched, in either mode,
-//                                 and its presence means the raw task
-//                                 message no longer needs protecting: the
-//                                 state carries the task, so that message
-//                                 is thinned like any other old content
+//                                 state block starts with. An assistant
+//                                 message whose text starts with it is
+//                                 never touched, in either mode, and its
+//                                 presence means the raw task message no
+//                                 longer needs protecting: the state
+//                                 carries the task, so that message is
+//                                 thinned like any other old content.
+//                                 The marker in user text, a tool result
+//                                 or anywhere else counts for nothing
 //   {"saccade": "off"}            off | auto | always. A saccade is the
 //                                 eye jumping to a new target: when the
 //                                 newest question is a different topic,
@@ -46,8 +49,9 @@
 // saccade it is the old task, and collapses with the rest. Tool calls and
 // their ids are never touched — an old tool result is shortened or
 // noted, not removed, so every tool_call still has its answer.
-// Already-shortened content carries the marker and is left alone, so a
-// history re-sent each turn is cut once, not again. A reply is never
+// Already-shortened content is short enough to pass the length guard, so
+// a history re-sent each turn is cut once, not again; a marker in the
+// content itself exempts nothing. A reply is never
 // touched: what the agent keeps from it is the agent's to keep.
 //
 // Chat (role:"tool"), Anthropic (tool_result blocks) and the Responses API
@@ -148,7 +152,7 @@ function windowStart(list, keepCount, keepTokens) {
 // a function_call, a custom_tool_call, a computer_call, a local_shell_call
 // and their outputs are all "the model spoke". Leaving them out made the
 // preamble exemption swallow the whole history on a body whose first
-// answer was a custom_tool_call (2026-11-05 对抗验收发现).
+// answer was a custom_tool_call (2026-11-05).
 const ANSWER_ITEMS = new Set([
   "function_call", "function_call_output",
   "custom_tool_call", "custom_tool_call_output",
@@ -170,8 +174,15 @@ function leadingUserEnd(list, start) {
   return start
 }
 
-// A state block is one message carrying the marker. It is found in the
-// text of the message, wherever the agent put it.
+// A state block is the agent's own message: an assistant message (Chat,
+// Anthropic, or a Responses message item) whose text, or one of whose
+// text parts, starts with the marker. Where the marker sits in the
+// protocol is what makes it the agent's: user text, a tool result, a
+// function_call_output and a nested tool_result part are written by
+// someone else — a file read, a log, a pasted message — and the marker
+// there, or anywhere inside a text, exempts nothing. Otherwise any
+// content that quotes the marker would stay whole forever and lift the
+// task message's protection.
 function hasStateBlock(list, marker) {
   for (const item of list) {
     if (carriesState(item, marker)) return true
@@ -181,18 +192,26 @@ function hasStateBlock(list, marker) {
 
 function carriesState(item, marker) {
   if (!item || typeof item !== "object" || !marker) return false
-  const holder = it_content(item)
-  if (typeof holder === "string") return holder.includes(marker)
-  if (!Array.isArray(holder)) return false
-  for (const b of holder) {
-    if (b && typeof b === "object" && typeof b.text === "string" && b.text.includes(marker)) return true
+  // Gemini's model turn is the agent's own message, like an assistant one.
+  if (item.role === "model" && Array.isArray(item.parts)) {
+    for (const p of item.parts) {
+      if (p && typeof p === "object" && typeof p.text === "string" && startsWithMarker(p.text, marker)) return true
+    }
+    return false
+  }
+  if (item.role !== "assistant") return false
+  if (item.type !== undefined && item.type !== "message") return false
+  if (typeof item.content === "string") return startsWithMarker(item.content, marker)
+  if (!Array.isArray(item.content)) return false
+  for (const b of item.content) {
+    if (b && typeof b === "object" && (b.type === "text" || b.type === "output_text") &&
+        typeof b.text === "string" && startsWithMarker(b.text, marker)) return true
   }
   return false
 }
 
-// Gemini keeps its text in parts[], everyone else in content.
-function it_content(item) {
-  return Array.isArray(item.parts) ? item.parts : item.content
+function startsWithMarker(text, marker) {
+  return text.trimStart().startsWith(marker)
 }
 
 // ── peripheral: the default mode, head and tail with a marker ──────────
@@ -427,8 +446,6 @@ function firstTask(list) {
 // file-change notices. Reading one as "the newest question" made every
 // follow-up look like a new topic: the reminder shares no words with the
 // task, so the overlap test said "shifted" and the history collapsed.
-// The user's own text is what decides the topic; the harness speaks for
-// itself.
 const HARNESS_BLOCKS = /<(system-reminder|system-reminder-sudo)>[\s\S]*?<\/\1>/gi
 
 function withoutHarness(text) {
@@ -454,8 +471,7 @@ function lastQuestion(list) {
 // question.
 function textOf(it) {
   // Gemini: the text rides in parts[], and a part may be a thought
-  // (thought: true) or carry a thoughtSignature — both are the model's
-  // own reasoning, not the user's words.
+  // (thought: true) — the model's own reasoning, not the user's words.
   if (Array.isArray(it.parts)) {
     let out = ""
     for (const p of it.parts) {
@@ -560,8 +576,8 @@ function collapseFunctionResponse(part, cfg) {
   for (const key of Object.keys(r)) {
     const v = r[key]
     if (typeof v === "string") {
-      changed = collapseText({ value: v }, "value", cfg) || changed
-      if (changed) r[key] = NOTE
+      const holder = { value: v }
+      if (collapseText(holder, "value", cfg)) { r[key] = holder.value; changed = true }
     } else if (v && typeof v === "object") {
       changed = collapseFunctionResponse({ functionResponse: { response: v } }, cfg) || changed
     }
@@ -587,14 +603,13 @@ function note(part, responses, text) {
   if (cacheControl) part.cache_control = cacheControl
 }
 
-// Head and tail with a marker in between. Content already carrying the
-// marker was cut on an earlier turn (the agent sends its history back each
-// time) and is left as it is — idempotent, and the marker tells the agent
-// what happened. Nothing to do when it already fits, or when a protect
-// pattern says this text must stay whole.
+// Head and tail with a marker in between. An already-cut string is short
+// enough to fall through the length guard above — that is what makes this
+// idempotent, and the marker tells the agent what happened. Nothing to do
+// when it already fits, or when a protect pattern says this text must stay
+// whole. A marker-shaped string in untrusted content must not exempt it.
 function cut(text, head, tail, what, cfg) {
   if (typeof text !== "string" || text.length <= head + tail + 80) return text
-  if (text.includes("[" + MARK + ":")) return text
   if (cfg.protect.length && cfg.protect.some((re) => re.test(text))) return text
   const headEnd = safeHead(text, head)
   const tailStart = safeTail(text, text.length - tail)

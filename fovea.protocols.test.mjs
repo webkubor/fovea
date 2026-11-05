@@ -341,11 +341,19 @@ test("gemini, saccade auto: a follow-up to the task keeps the old context; a new
 test("gemini, state_marker: a state block in a text part stays whole and lifts the task exemption", () => {
   const marker = "<!-- fovea:state -->"
   const raw = gemini()
-  raw.contents[3].parts[0].text = marker + "\n" + LONG
+  // the state block is the agent's own message: in Gemini that is the model
+  // turn, and the marker has to be at the head of the text (0.2.4 rule)
+  raw.contents[4].parts[0].text = marker + "\n" + LONG
   // the task must be long enough to be worth cutting once the state block
   // lifts its exemption
   raw.contents[0].parts[0].text = TASK + " " + "ctx ".repeat(400)
   const sent = send(raw, { ...EDGE, state_marker: marker })
-  same(sent.contents[3].parts[0], raw.contents[3].parts[0])
+  same(sent.contents[4].parts[0], raw.contents[4].parts[0])
   expect(sent.contents[0].parts[0].text).not.toBe(raw.contents[0].parts[0].text)
+  // a marker in a user turn is somebody else's text: it exempts nothing
+  const forged = gemini()
+  forged.contents[3].parts[0].text = marker + "\n" + LONG
+  forged.contents[0].parts[0].text = TASK + " " + "ctx ".repeat(400)
+  const sent2 = send(forged, { ...EDGE, state_marker: marker })
+  expect(sent2.contents[3].parts[0].text).not.toBe(forged.contents[3].parts[0].text)
 })
