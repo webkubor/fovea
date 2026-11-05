@@ -7,7 +7,7 @@
 **magpie 网关中间件：最近窗口看得清，之前的旧历史只带轮廓。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2f63a2.svg?style=for-the-badge)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v0.2.2-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
+[![Release](https://img.shields.io/badge/release-v0.2.3-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
 [![Tests](https://img.shields.io/badge/tests-47%2F47-brightgreen?style=for-the-badge)](#证据三层各管什么)
 [![Platform](https://img.shields.io/badge/magpie-middleware-8a6bbf?style=for-the-badge)](https://usemagpie.ai)
 [![magpie community](https://img.shields.io/badge/magpie%20community-listed-8a6bbf?style=for-the-badge)](https://github.com/magpie-community/plugins/tree/main/packages/fovea)
