@@ -2,6 +2,26 @@
 
 本文件记录 fovea 的对外变化。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [0.2.5] — 2026-11-05
+
+本版与 magpie-community 主线对齐：0.2.3、0.2.4 的两处安全修复并入，另加三处新修复。
+
+### Added
+
+- 支持 Gemini 请求（`contents` 字段）：thought 与 thoughtSignature、functionCall 不动；functionResponse 保留 id / name / 键，其中的长字符串被裁；图片换成注记；文档与视频载荷不动。此前 Gemini 请求完全原样放行，装了也不省。
+
+### Fixed
+
+- 幂等性改由长度闸门保证（`head + tail + 80`）：不可信的工具输出或用户消息伪造 `[fovea:` 字样不再让整块旧内容永久免裁；已裁内容在后续请求中仍逐字节稳定。
+- `state_marker` 只在 agent 自己写状态的位置生效：assistant 消息（Chat、Anthropic、Responses 的 message 项，或 Gemini 的 model 轮）中以标记开头的文本或文本块。工具结果、用户消息、嵌套块、文本中间出现同样字样都不再算状态块。
+- `saccade: "auto"` 不再把 Claude Code 的 `<system-reminder>`（token 预算、工具指引）当成用户的新问题。它与任务没有共同词，旧规则判成换话题、整段历史折叠。
+- Responses 请求的首个答案是 `custom_tool_call` / `computer_call` / `local_shell_call` 时，任务豁免范围算错，整条历史一条都不裁。
+- Chat 旧版 functions API 的 `role: "function"` 消息此前完全没被处理，那正是最占钱的工具输出。
+
+### Changed
+
+- 测试从 47 增至 74 个用例：新增 `fovea.protocols.test.mjs`（四种协议各自的形状与边界，12 条）；变异检验从 20 处增至 26 处契约保护（CI 里跑）。
+
 ## [0.2.3] — 2026-11-05
 
 ### Added

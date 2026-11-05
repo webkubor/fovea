@@ -145,9 +145,12 @@ test("Claude Code Messages, state_marker: an old long state block stays whole in
   const state = marker + "\n" + JSON.stringify({ task: "fix sched retry timing", constraints: ["public API unchanged"], decisions: Array.from({ length: 60 }, (_, i) => `decision ${i}: kept`) })
   for (const saccade of ["off", "always"]) {
     const raw = claudeCode(80)
-    raw.messages[2].content.push({ type: "text", text: state })
+    // the state block is the agent's own message and the marker is at the
+    // head of its text (0.2.4 rule): a marker in a user turn is somebody
+    // else's text and exempts nothing
+    raw.messages[3].content.unshift({ type: "text", text: state })
     const sent = send(raw, { ...DEFAULTS, state_marker: marker, saccade })
-    expect(json(sent.messages[2].content.at(-1))).toBe(json({ type: "text", text: state }))
+    expect(json(sent.messages[3].content[0])).toBe(json({ type: "text", text: state }))
     expect(json(sent.messages[0])).not.toBe(json(raw.messages[0]))
   }
 })

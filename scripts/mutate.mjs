@@ -22,8 +22,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..")
 // Each mutant reverts one promise the README or a review made. `why` says
 // which, so a survivor reads as the claim left untested.
 export const MUTANTS = [
-  { name: "marker idempotence", why: "#467 review §4: content already carrying the marker is not cut again",
-    find: `if (text.includes("[" + MARK + ":")) return text\n`, replace: "" },
+  { name: "the length gate keeps a cut result from being cut again", why: "0.2.3: idempotence by length, not by a marker an untrusted tool output could forge",
+    find: `if (typeof text !== "string" || text.length <= head + tail + 80) return text`,
+    replace: `if (typeof text !== "string") return text` },
+  { name: "a forged marker does not exempt old content", why: "0.2.3: the marker in the content itself must exempt nothing",
+    find: `if (typeof text !== "string" || text.length <= head + tail + 80) return text`,
+    replace: `if (typeof text !== "string" || (text.length <= head + tail + 80 && !text.includes("[" + MARK + ":"))) return text` },
+  { name: "a state marker counts only at the head of the agent's own text", why: "0.2.4: a marker quoted in a user turn or a tool result exempts nothing",
+    find: `return text.trimStart().startsWith(marker)`, replace: `return text.includes(marker)` },
   { name: "surrogate pair, head end", why: "#467 review §3",
     find: `low(text.charCodeAt(n))) return n - 1`, replace: `low(text.charCodeAt(n))) return n` },
   { name: "surrogate pair, tail end", why: "#467 review §3",
