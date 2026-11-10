@@ -7,4 +7,4 @@
 [57042:12554622:1110/152038.285643:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
 [57042:12554746:1110/152038.285761:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
 Trying to load the allocator multiple times. This is *not* supported.
-22402 bytes written to file /Users/webkubor/dev/magpie-plugins/fovea/.claude/worktrees/page-polish-icon/brand/evidence/lockups.png
+22402 bytes written to file brand/evidence/lockups.png
