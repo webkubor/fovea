@@ -4,13 +4,20 @@
   --line:#e3e9f0; --ink:#2f63a2; --soft:#ecf3fb; --raw:#b6c2ce;
   --shadow:0 10px 34px rgba(19,32,46,.06);
 }
+/* dark: magpie's window theme (data-theme, set from the bridge) wins; with
+   no bridge (opened on its own) the OS preference decides */
+:root[data-theme="dark"]{ --bg:#0f151d; --surface:#18212c; --text:#eef3f8; --sub:#9db0c2;
+  --line:#2b3a4a; --ink:#8dbbf5; --soft:#21334a;
+  --raw:#5d738a; --shadow:0 10px 34px rgba(0,0,0,.22); color-scheme:dark }
 @media (prefers-color-scheme: dark){
-  :root{ --bg:#0f151d; --surface:#18212c; --text:#eef3f8; --sub:#9db0c2;
+  :root:not([data-theme]){ --bg:#0f151d; --surface:#18212c; --text:#eef3f8; --sub:#9db0c2;
     --line:#2b3a4a; --ink:#8dbbf5; --soft:#21334a;
     --raw:#5d738a; --shadow:0 10px 34px rgba(0,0,0,.22); }
 }
+:root[data-theme="light"]{ color-scheme:light }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
+/* the bridge's base sheet pads body; main already centres itself */
+body{margin:0;padding:0;background:var(--bg);color:var(--text);
   font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;
   -webkit-font-smoothing:antialiased}
 main{width:min(840px,calc(100% - 32px));margin:0 auto;padding:26px 0 56px}
@@ -25,7 +32,8 @@ main{width:min(840px,calc(100% - 32px));margin:0 auto;padding:26px 0 56px}
 .pill{margin-left:auto;background:var(--soft);color:var(--ink);padding:5px 11px;
   border-radius:999px;font-size:12px;white-space:nowrap;flex:none}
 .pill.bad{background:#f6e3e3;color:#a04040}
-@media (prefers-color-scheme: dark){.pill.bad{background:#3d2426;color:#e2a2a2}}
+:root[data-theme="dark"] .pill.bad{background:#3d2426;color:#e2a2a2}
+@media (prefers-color-scheme: dark){:root:not([data-theme]) .pill.bad{background:#3d2426;color:#e2a2a2}}
 
 /* ── stat cards ───────────────────────────────────── */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
@@ -76,11 +84,17 @@ select,input,textarea{background:var(--bg);color:var(--text);border:1px solid va
 input{width:104px}
 textarea{width:100%;min-height:120px;resize:vertical;
   font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-textarea:focus,select:focus,input:focus{outline:2px solid var(--soft);border-color:var(--ink)}
+textarea:focus,select:focus,input:focus{outline:none;border-color:var(--ink);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 28%,transparent)}
 .actions{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
 button{border:0;border-radius:9px;background:var(--ink);color:var(--bg);padding:9px 16px;
   font:inherit;font-weight:600;cursor:pointer}
 button.quiet{background:var(--soft);color:var(--ink)}
+button{transition:filter .15s ease,transform .08s ease}
+button:hover:not(:disabled){filter:brightness(1.08)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 #error{color:#a04040;font-size:12px}
 
 /* ── live cards ───────────────────────────────────── */

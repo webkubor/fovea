@@ -1,10 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Fovea mark">
-  <title>Fovea — recent context held, old context shortened</title>
-  <rect x="22" y="25" width="84" height="12" rx="6" fill="#161616"/>
-  <rect x="22" y="47" width="84" height="8" rx="4" fill="#161616"/>
-  <circle cx="49" cy="68" r="5" fill="#161616"/>
-  <circle cx="64" cy="68" r="5" fill="#161616"/>
-  <circle cx="79" cy="68" r="5" fill="#161616"/>
-  <rect x="22" y="81" width="84" height="10" rx="5" fill="#161616"/>
-  <rect x="22" y="99" width="84" height="8" rx="4" fill="#161616"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Fovea">
+  <title>Fovea — sharp centre, fading periphery</title>
+  <!-- magpie draws a page's tab icon as a plain <img> (no currentColor, no
+       dark variant), so the mark carries its own tile: legible on the light
+       and the dark sidebar alike -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f86c9"/>
+      <stop offset="1" stop-color="#2a5592"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#g)"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="9"/>
+  <circle cx="64" cy="64" r="27" fill="none" stroke="#fff" stroke-opacity=".72" stroke-width="10"/>
+  <circle cx="64" cy="64" r="11" fill="#fff"/>
 </svg>
