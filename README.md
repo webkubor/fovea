@@ -7,7 +7,7 @@
 **magpie 网关中间件：最近窗口看得清，之前的旧历史只带轮廓。**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2f63a2.svg?style=for-the-badge)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v0.2.5-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
+[![Release](https://img.shields.io/badge/release-v0.2.6-2f63a2.svg?style=for-the-badge)](https://github.com/webkubor/fovea/releases)
 [![Tests](https://img.shields.io/badge/tests-74%2F74-brightgreen?style=for-the-badge)](#证据三层各管什么)
 [![Platform](https://img.shields.io/badge/magpie-middleware-8a6bbf?style=for-the-badge)](https://usemagpie.ai)
 [![magpie community](https://img.shields.io/badge/magpie%20community-listed-8a6bbf?style=for-the-badge)](https://github.com/magpie-community/plugins/tree/main/packages/fovea)
@@ -113,6 +113,20 @@ git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 74/74，
 
 1. **规则正确性** —— `bun test`：74 个确定性用例（离线、零依赖）。覆盖三种形状的工具配对、protect 在两种模式下生效、代理对不劈开、document 块不动、标记幂等、连续两轮已裁前缀逐字节相同；另有 Claude Code / Codex / Chat 三种形状的整段会话探针，逐轮断言 id、签名、加密推理和缓存断点不变，缓存前缀按块断开，算上缓存比不装更便宜。`bun scripts/mutate.mjs` 把 26 处契约保护逐一改坏，每一处都必须让测试变红（CI 里跑）。
 2. **同一请求确实变小** —— `bun benchmark.mjs [request.json] [options]`，或直接在证据页粘贴你的请求。合成样例：47,777 → 14,148 字符，已裁的 27 条消息逐字稳定。整段会话的量化指标（三种协议的请求体、计入缓存的成本、`cut_step` 扫描）：`bun scripts/metrics.mjs` 写出 [`promo/metrics.json`](promo/metrics.json)，推广图 [`promo/`](promo/) 的每个数字都读自这里。
+
+   <details open>
+   <summary><b>▶ 本版实拍：证据页「粘贴复算」全流程（页内直接播放）</b></summary>
+
+   下面这段视频是 0.2.6 这一版真机录的：真页面、真粘贴、真点按钮。粘贴 22 条消息的请求（110,486 字符），页面当场算出 78,239 字符（71%），裁掉 3 条。
+
+   <video src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-evidence-demo.mp4" controls width="820"></video>
+
+   <p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/evidence-page-light.webp" alt="fovea 证据页浅色主题：原始请求 47,777 字符，经过 fovea 14,148 字符，消息带显示旧消息被裁成头尾、最近窗口逐字保留" width="820"/></p>
+
+   <p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/evidence-page-dark.webp" alt="fovea 证据页深色主题：同一组对照数字，深色下霓虹 F 图标与紫色最近窗口清晰可见" width="820"/></p>
+
+   </details>
+
 3. **真实 token / 缓存 / 费用** —— `FOVEA_GATEWAY_KEY=<临时key> bun live-benchmark.mjs`：同模型、同请求、ABBA 四连发，记录供应商返回的 input / cache_read / output token 与耗时，只看暖缓存的第二次。0.1.0 时代的一次实测：163,143 → 42,358 prompt tokens，中位延迟 7.1s → 2.5s（因历史形状与供应商缓存而异）。**账单以 `magpie usage --csv` 的 `cost_usd` 为准；字符百分比不是美元。**
 
 <p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-knob-zh.png" alt="cut_step 从 1 到 96 的扫描：输入成本与平均请求体随步长的变化，默认值 24 高亮；右侧是三种协议在默认参数下的结果" width="820"/></p>
