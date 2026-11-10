@@ -2,6 +2,50 @@
 
 本文件记录 fovea 的对外变化。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
+## [0.2.6] — 2026-11-10 · 证据页跟随主题，霓虹 F 品牌统一
+
+> **一句话摘要**：证据页接入 magpie 主题桥并统一霓虹 F 品牌，深浅主题下图标都看得见；附本版真实截图与页内可播放的演示视频。
+
+### ✨ 新增特性 (What's New)
+
+- **本版真实演示视频**：证据页的「粘贴复算」从填表到出数全流程录屏，页内直接播放。视频里那组数字是页面当场算出来的 —— 粘贴 22 条消息的请求（110,486 字符），点「计算前后差异」，页面自己算出 78,239 字符（71%），裁掉 3 条。不是动画，不是设计稿。
+
+<video src="https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be" controls width="820"></video>
+
+（视频加载不出来？[直接打开视频](https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be)）
+
+- **本版证据页截图**（真实浏览器渲染，深浅两套主题各一张）：
+
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/evidence-page-light.webp" alt="fovea 证据页浅色主题：原始请求 47,777 字符，经过 fovea 14,148 字符，消息带显示旧消息被裁成头尾、最近窗口逐字保留" width="820"/></p>
+
+<p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/evidence-page-dark.webp" alt="fovea 证据页深色主题：同一组对照数字，深色下霓虹 F 图标与紫色最近窗口清晰可见" width="820"/></p>
+
+### ⚡️ 体验与性能优化 (Improvements)
+
+- **证据页跟随 magpie 的窗口主题**：magpie 窗口切深色，证据页跟着切，不再固定成浅色。magpie 之外打开时回落到系统 `prefers-color-scheme`，两边都不失配。
+- **品牌统一为霓虹 F**：logo / banner / 页面图标（`page/icon.svg`）改用同一套霓虹 F 标记（青 `#00F0FF` + 紫 `#7C5CFF` + 洋红重影），深浅背景各一版。manifest 里的品牌色与实际 SVG 逐字对齐。
+- **侧栏图标在深色主题下可见**：此前深色下图标描边被背景吃掉，现在深浅都看得清。
+- **图注改成人话**：消息带那行说明从「浅色是旧消息、深色是最近窗口」改成「虚线框是旧消息（只剩头尾），紫色块是最近窗口（逐字保留）」—— 原来那版描述的是配色，跟实际渲染对不上。
+
+### 🐛 缺陷修复 (Bug Fixes)
+
+- 侧栏图标在深色主题下不可见（见上）。
+- 验证日志里残留本机绝对路径，已隐去。
+
+### ⚠️ 破坏性变更与迁移 (Breaking Changes & Migration)
+
+无破坏性变更。中间件裁剪逻辑本版未改：消息条数、顺序、id、工具配对、思考签名、加密推理全部照旧，`keep_recent` / `cut_step` / `tool_head` 等选项语义不变。
+
+### 📦 安装与升级 (Install & Upgrade)
+
+```bash
+# 已装过的：跟随 magpie 的插件更新通道升级
+magpie plugin update fovea
+
+# 想直接跟本仓最新提交：
+magpie plugin add github:webkubor/fovea
+```
+
 ## [0.2.5] — 2026-11-05
 
 本版与 magpie-community 主线对齐：0.2.3、0.2.4 的两处安全修复并入，另加三处新修复。

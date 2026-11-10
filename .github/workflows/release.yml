@@ -41,7 +41,11 @@ jobs:
           if [ ! -s notes.md ]; then
             echo "CHANGELOG has no content for $VERSION, stopping" && exit 1
           fi
+          # Title: "v<x.y.z> — <one-line value>", the value taken from the
+          # CHANGELOG heading after " · ". No value -> bare "v<x.y.z>".
+          SUMMARY=$(grep -m1 "^## \[$VERSION\]" CHANGELOG.md | sed -n 's/^.* · //p')
+          TITLE="v$VERSION${SUMMARY:+ — $SUMMARY}"
           gh release create "v$VERSION" \
-            --title "fovea $VERSION" \
+            --title "$TITLE" \
             --notes-file notes.md \
             --target "$GITHUB_SHA"
