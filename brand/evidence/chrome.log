@@ -1,0 +1,14 @@
+[52388:12542177:1110/151948.707145:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542236:1110/151948.707929:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542177:1110/151948.709001:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542236:1110/151948.709068:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542177:1110/151948.709173:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542236:1110/151948.709211:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542177:1110/151949.009013:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542236:1110/151949.015830:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Trying to load the allocator multiple times. This is *not* supported.
+[52388:12542177:1110/151951.388966:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[52388:12542236:1110/151951.389160:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+233747 bytes written to file /Users/webkubor/dev/magpie-plugins/fovea/.claude/worktrees/page-polish-icon/brand/evidence/brand-review.png
+[52128:12541584:1110/151951.490583:ERROR:chrome/browser/web_applications/os_integration/os_integration_manager.cc:270] Can't perform OS integration while the browser is shutting down.
+[52128:12541584:1110/151951.585441:ERROR:chrome/browser/web_applications/externally_managed_app_manager.cc:680] https://docs.google.com/document/installwebapp?usp=chrome_default from install source 1 failed to install with reason 21

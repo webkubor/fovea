@@ -1,7 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Fovea logo for dark backgrounds">
-  <title>Fovea — sharp centre, fading periphery (dark)</title>
-  <circle cx="64" cy="64" r="58" fill="none" stroke="#e8eef5" stroke-opacity="0.22" stroke-width="6"/>
-  <circle cx="64" cy="64" r="42" fill="none" stroke="#e8eef5" stroke-opacity="0.5" stroke-width="7"/>
-  <circle cx="64" cy="64" r="25" fill="none" stroke="#e8eef5" stroke-opacity="0.9" stroke-width="8"/>
-  <circle cx="64" cy="64" r="10" fill="#8dbbf5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 128" role="img" aria-label="Fovea">
+  <title>Fovea — F of context rows: the old row cut to head and tail, the recent row whole</title>
+  <defs>
+    <linearGradient id="fovea-logo-dark-neon" x1="24" y1="24" x2="104" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00F0FF"/><stop offset="1" stop-color="#7C5CFF"/></linearGradient>
+    <linearGradient id="fovea-logo-dark-tile" x1="0" y1="0" x2="0" y2="128" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#141728"/><stop offset="1" stop-color="#05060B"/></linearGradient>
+  </defs>
+  <g fill="#FF2BD6" transform="translate(5 4)">
+    <rect x="28" y="24" width="22" height="80" rx="4"/><rect x="50" y="24" width="18" height="20" rx="4"/><rect x="82" y="24" width="18" height="20" rx="4"/><rect x="50" y="58" width="42" height="20" rx="4"/>
+  </g>
+  <g fill="url(#fovea-logo-dark-neon)">
+    <rect x="28" y="24" width="22" height="80" rx="4"/><rect x="50" y="24" width="18" height="20" rx="4"/><rect x="82" y="24" width="18" height="20" rx="4"/><rect x="50" y="58" width="42" height="20" rx="4"/>
+  </g>
+<g fill="#EEF0FF" transform="translate(145 96) scale(0.047 -0.047)">
+    <path transform="translate(0 0)" d="M375 764V0H149V764H69V974H149V1350Q149 1534 213 1610Q301 1716 469 1716Q529 1716 620 1681V1451L597 1463Q524 1500 477 1500Q417 1500 396 1457Q375 1415 375 1295V974H620V764Z"/>
+    <path transform="translate(633.0 0)" d="M96 494Q96 705 247.0 853.0Q398 1001 615 1001Q833 1001 985 852Q1135 703 1135 486Q1135 267 984 119Q832 -28 611 -28Q392 -28 244 122Q96 270 96 494ZM326 490Q326 344 404 259Q484 173 615 173Q747 173 826.0 258.0Q905 343 905 485Q905 627 826 712Q746 798 615 798Q486 798 406.0 712.0Q326 626 326 490Z"/>
+    <path transform="translate(1823.0 0)" d="M263 974 515 427 766 974H1019L513 -67L11 974Z"/>
+    <path transform="translate(2817.0 0)" d="M1029 434H331Q340 314 409 243Q478 173 586 173Q670 173 725 213Q779 253 848 361L1038 255Q994 180 945.0 126.5Q896 73 840.0 38.5Q784 4 719.0 -12.0Q654 -28 578 -28Q360 -28 228 112Q96 253 96 486Q96 717 224 860Q353 1001 566 1001Q781 1001 906 864Q1030 728 1030 487ZM798 618Q751 798 571 798Q530 798 494.0 785.5Q458 773 428.5 749.5Q399 726 378.0 693.0Q357 660 346 618Z"/>
+    <path transform="translate(3950.0 0)" d="M860 974H1086V0H860V102Q721 -28 561 -28Q359 -28 227 118Q96 267 96 490Q96 709 227.0 855.0Q358 1001 555 1001Q725 1001 860 861ZM326 490Q326 350 401 262Q478 173 595 173Q720 173 797 259Q874 348 874 485Q874 622 797 711Q720 798 597 798Q481 798 403 710Q326 621 326 490Z"/>
+  </g>
 </svg>

@@ -4,33 +4,46 @@
       "id": "fovea",
       "name": "Fovea",
       "sources": [
-        { "url": "https://github.com/magpie-community/plugins/pull/467", "label": "插件 PR" },
-        { "url": "https://github.com/yetone/magpie/blob/main/site/public/img/icon-256.png", "label": "magpie 既有图标" }
+        {
+          "url": "https://github.com/magpie-community/plugins/pull/467",
+          "label": "插件 PR"
+        },
+        {
+          "url": "https://github.com/yetone/magpie/blob/main/site/public/img/icon-256.png",
+          "label": "magpie 既有图标"
+        }
       ],
       "tokens": {
-        "primary": "#161616",
-        "accent": "#161616",
-        "onLight": "#161616",
-        "onDark": "#F7F7F5",
-        "background": "transparent"
+        "primary": "#00F0FF",
+        "accent": "#7C5CFF",
+        "magenta": "#FF2BD6",
+        "onLight": "#006674",
+        "onDark": "#00F0FF",
+        "background": "#05060B"
       },
       "tokenSources": {
-        "primary": "素材测量：magpie/site/public/img/icon-256.png (256px RGBA) 中 alpha>200 且 RGB<60 的像素众数为 RGB(22,22,22) = #161616；不是源码声明的品牌 token",
-        "accent": "本次建议：沿用取样墨色，不另引强调色",
-        "onLight": "素材测量：沿用主墨色 #161616",
-        "onDark": "本次建议：深色底上使用 #F7F7F5，对照原图标的浅色背景；不是生产 token",
-        "background": "本次建议：SVG 透明画布，交付后用于深浅背景"
+        "primary": "用户定稿 A2.svg；浅底用加深的可读变体",
+        "accent": "用户定稿 A2.svg；浅底用加深的可读变体",
+        "magenta": "用户定稿 A2.svg；浅底用加深的可读变体",
+        "onLight": "用户定稿 A2.svg；浅底用加深的可读变体",
+        "onDark": "用户定稿 A2.svg；浅底用加深的可读变体",
+        "background": "用户定稿 A2.svg；浅底用加深的可读变体"
       },
       "rationale": [
-        "本次建议：两端完整横线代表保留的上下文，中间三个点代表有标记的省略；圆点不是删除按钮，表达的是可见且可解释的缩短。",
-        "本次建议：采用 magpie 图标取样得到的单色墨线，降低社区插件与主产品并列时的视觉冲突。"
+        "F 的上横保留首尾片段，中横保持完整，表达旧上下文缩短、最近上下文完整。",
+        "独立图标保留自带深底板和洋红重影；透明标志及横版字标提供深浅背景两套。"
       ],
       "recommendations": [
-        "本次建议：先把图标当插件列表的 32px 标记使用；若未来成为独立产品，再做与 magpie 主品牌区分的色彩系统。"
+        "page/icon.svg 用于不支持主题切换的普通 img；mark/logo 使用对应背景变体。"
       ],
       "asset": "assets/mark.svg",
       "darkAsset": "assets/mark-dark.svg",
-      "oldAsset": null
+      "oldAsset": null,
+      "userDecisions": [
+        "用户已确认 A2.svg 的 F；只为 SVG 引用增加唯一前缀，不改变页面图标外形。"
+      ],
+      "logo": "assets/logo.svg",
+      "darkLogo": "assets/logo-dark.svg"
     }
   ]
 }

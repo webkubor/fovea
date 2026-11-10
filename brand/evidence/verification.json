@@ -1,0 +1,291 @@
+{
+  "dark": {
+    "theme": "dark",
+    "tokens": {
+      "bg": "#05060B",
+      "surface": "#101320",
+      "text": "#EEF0FF",
+      "sub": "#AFB5D0",
+      "ink": "#00F0FF",
+      "soft": "#142B39",
+      "violet": "#B6A4FF",
+      "magenta": "#FF70E3",
+      "error": "#FF91AB"
+    },
+    "body": "fovea 对照证据\n\n同一份请求，裁剪前后放在一起看。\n\n示例数据\n原始请求\n47,777\n字符\n经过 fovea\n14,148\n字符\n减少\n33,629\n13 / 34 条消息被裁\n消息带\n34 条消息 · 21 条原样保留\n\n虚线框是旧消息（只剩头尾），紫色块是最近窗口（逐字保留）。省下的就是中间那段省略号。\n\n请求体积\n缩小到 30%\n原始\n47,777\n裁剪后\n14,148\n\n这是本地请求的字符数，不是模型实际计费的 token。\n\n相邻两轮的共同前缀\n27 条已裁消息逐字稳定\n不开插件\n100%\n开启插件\n99%\n\n共同前缀占比高，缓存命中率才有指望。它检验裁剪边界是否稳定，不替代供应商的缓存读数。\n\n用你的请求复验\n只在本机计算\n\n粘贴一份请求（messages 或 input），页面只显示数字，不保存也不发送正文。\n\n模式\n保留头尾\n自动判断话题\n旧内容全折叠\n最近消息数\n边界步长\n计算前后差异\n清空\n真实网关 A/B\n尚未运行\n\n在装了 fovea 的机器上运行 live-benchmark.mjs，这里会显示同模型、同请求的两次暖缓存调用结果。\n\n供应商不回缓存字段时，卡片会写「未提供」，不用字符数推算命中。\n\n实际省钱怎么证明\n\n字符变少只说明请求变短。要证明省钱，看同模型两次暖缓存调用的输入 token 与缓存读取 token，费用以 magpie 的用量记录为准。\n\n字符数与共同前缀占比是确定性的代理指标，不是计费 token、缓存命中、延迟或实际美元；system/developer 与最近窗口里的摘要仍会发送。",
+    "overflow": false
+  },
+  "light": {
+    "theme": "light",
+    "tokens": {
+      "bg": "#F4F3FA",
+      "surface": "#FFFFFF",
+      "text": "#19162E",
+      "sub": "#59546D",
+      "ink": "#006674",
+      "soft": "#E6F3F5",
+      "violet": "#5934C7",
+      "magenta": "#AC007F",
+      "error": "#AD2447"
+    },
+    "body": "fovea 对照证据\n\n同一份请求，裁剪前后放在一起看。\n\n示例数据\n原始请求\n47,777\n字符\n经过 fovea\n14,148\n字符\n减少\n33,629\n13 / 34 条消息被裁\n消息带\n34 条消息 · 21 条原样保留\n\n虚线框是旧消息（只剩头尾），紫色块是最近窗口（逐字保留）。省下的就是中间那段省略号。\n\n请求体积\n缩小到 30%\n原始\n47,777\n裁剪后\n14,148\n\n这是本地请求的字符数，不是模型实际计费的 token。\n\n相邻两轮的共同前缀\n27 条已裁消息逐字稳定\n不开插件\n100%\n开启插件\n99%\n\n共同前缀占比高，缓存命中率才有指望。它检验裁剪边界是否稳定，不替代供应商的缓存读数。\n\n用你的请求复验\n只在本机计算\n\n粘贴一份请求（messages 或 input），页面只显示数字，不保存也不发送正文。\n\n模式\n保留头尾\n自动判断话题\n旧内容全折叠\n最近消息数\n边界步长\n计算前后差异\n清空\n真实网关 A/B\n尚未运行\n\n在装了 fovea 的机器上运行 live-benchmark.mjs，这里会显示同模型、同请求的两次暖缓存调用结果。\n\n供应商不回缓存字段时，卡片会写「未提供」，不用字符数推算命中。\n\n实际省钱怎么证明\n\n字符变少只说明请求变短。要证明省钱，看同模型两次暖缓存调用的输入 token 与缓存读取 token，费用以 magpie 的用量记录为准。\n\n字符数与共同前缀占比是确定性的代理指标，不是计费 token、缓存命中、延迟或实际美元；system/developer 与最近窗口里的摘要仍会发送。",
+    "overflow": false
+  },
+  "invalid": "这段内容读不出来：请粘贴完整的请求 JSON（从 { 到 } 整段复制）。",
+  "clear": true,
+  "mobileOverflow": false,
+  "contrast": [
+    {
+      "theme": "dark",
+      "fg": "text",
+      "bg": "bg",
+      "ratio": 17.88,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "text",
+      "bg": "surface",
+      "ratio": 16.32,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "text",
+      "bg": "soft",
+      "ratio": 12.93,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "sub",
+      "bg": "bg",
+      "ratio": 9.97,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "sub",
+      "bg": "surface",
+      "ratio": 9.1,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "sub",
+      "bg": "soft",
+      "ratio": 7.21,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "ink",
+      "bg": "bg",
+      "ratio": 14.37,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "ink",
+      "bg": "surface",
+      "ratio": 13.12,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "ink",
+      "bg": "soft",
+      "ratio": 10.39,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "violet",
+      "bg": "bg",
+      "ratio": 9.39,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "violet",
+      "bg": "surface",
+      "ratio": 8.58,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "violet",
+      "bg": "soft",
+      "ratio": 6.79,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "magenta",
+      "bg": "bg",
+      "ratio": 8.37,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "magenta",
+      "bg": "surface",
+      "ratio": 7.64,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "magenta",
+      "bg": "soft",
+      "ratio": 6.05,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "error",
+      "bg": "bg",
+      "ratio": 9.53,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "error",
+      "bg": "surface",
+      "ratio": 8.71,
+      "pass": true
+    },
+    {
+      "theme": "dark",
+      "fg": "error",
+      "bg": "soft",
+      "ratio": 6.9,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "text",
+      "bg": "bg",
+      "ratio": 15.93,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "text",
+      "bg": "surface",
+      "ratio": 17.57,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "text",
+      "bg": "soft",
+      "ratio": 15.48,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "sub",
+      "bg": "bg",
+      "ratio": 6.54,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "sub",
+      "bg": "surface",
+      "ratio": 7.21,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "sub",
+      "bg": "soft",
+      "ratio": 6.35,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "ink",
+      "bg": "bg",
+      "ratio": 6.04,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "ink",
+      "bg": "surface",
+      "ratio": 6.66,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "ink",
+      "bg": "soft",
+      "ratio": 5.87,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "violet",
+      "bg": "bg",
+      "ratio": 6.95,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "violet",
+      "bg": "surface",
+      "ratio": 7.66,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "violet",
+      "bg": "soft",
+      "ratio": 6.75,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "magenta",
+      "bg": "bg",
+      "ratio": 6.22,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "magenta",
+      "bg": "surface",
+      "ratio": 6.86,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "magenta",
+      "bg": "soft",
+      "ratio": 6.05,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "error",
+      "bg": "bg",
+      "ratio": 6.1,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "error",
+      "bg": "surface",
+      "ratio": 6.73,
+      "pass": true
+    },
+    {
+      "theme": "light",
+      "fg": "error",
+      "bg": "soft",
+      "ratio": 5.93,
+      "pass": true
+    }
+  ]
+}
