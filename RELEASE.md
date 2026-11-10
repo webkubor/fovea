@@ -1,6 +1,6 @@
 # 发版流程
 
-发版只走 pull request，不直推 main。合并即发布：带 `release` 标签的 PR 合并后，[release workflow](.github/workflows/release.yml) 会重跑全部测试、校验版本三方一致（package.json == CHANGELOG == README 徽章），然后打 `v<x.y.z>` 标签并从 CHANGELOG 对应小节生成 Release Notes。直接推到 main 的提交永远不触发发布。
+发版只走 pull request，不直推 main。合并即发布：带 `release` 标签的 PR 合并后，[release workflow](.github/workflows/release.yml) 会重跑全部测试、校验版本三方一致（package.json == CHANGELOG == README 徽章），然后打 `v<x.y.z>` 标签并从 CHANGELOG 对应小节生成 Release Notes。Release 标题取 CHANGELOG 小节标题里 ` · ` 之后的中文一句话，形如 `v0.2.6 — 证据页跟随主题，霓虹 F 品牌统一`（不超过 25 字）。直接推到 main 的提交永远不触发发布。
 
 ## 步骤
 

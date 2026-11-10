@@ -119,7 +119,9 @@ git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 74/74，
 
    下面这段视频是 0.2.6 这一版真机录的：真页面、真粘贴、真点按钮。粘贴 22 条消息的请求（110,486 字符），页面当场算出 78,239 字符（71%），裁掉 3 条。
 
-   <video src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-evidence-demo.mp4" controls width="820"></video>
+   <video src="https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be" controls width="820"></video>
+
+   （视频加载不出来？[直接打开视频](https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be)）
 
    <p align="center"><img src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/evidence-page-light.webp" alt="fovea 证据页浅色主题：原始请求 47,777 字符，经过 fovea 14,148 字符，消息带显示旧消息被裁成头尾、最近窗口逐字保留" width="820"/></p>
 
@@ -147,3 +149,5 @@ git clone https://github.com/webkubor/fovea && cd fovea && bun test   # 74/74，
 - [CHANGELOG.md](CHANGELOG.md) · [LICENSE](LICENSE)（MIT）· [brand/](brand/)（logo 双色 / banner / 品牌审查页）
 - 品牌色 `#2f63a2` 取自「中央凹」隐喻的焦点色；墨色采样自 magpie 既有图标，属实测非官方色板。
 - 致谢：yetone 对早期 context-slim 草稿的评审直接塑造了缓存边界、document、代理对等设计。
+
+[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)

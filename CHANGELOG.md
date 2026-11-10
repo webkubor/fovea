@@ -2,7 +2,7 @@
 
 本文件记录 fovea 的对外变化。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本遵循语义化版本。
 
-## [0.2.6] — 2026-11-10
+## [0.2.6] — 2026-11-10 · 证据页跟随主题，霓虹 F 品牌统一
 
 > **一句话摘要**：证据页接入 magpie 主题桥并统一霓虹 F 品牌，深浅主题下图标都看得见；附本版真实截图与页内可播放的演示视频。
 
@@ -10,7 +10,9 @@
 
 - **本版真实演示视频**：证据页的「粘贴复算」从填表到出数全流程录屏，页内直接播放。视频里那组数字是页面当场算出来的 —— 粘贴 22 条消息的请求（110,486 字符），点「计算前后差异」，页面自己算出 78,239 字符（71%），裁掉 3 条。不是动画，不是设计稿。
 
-<video src="https://cdn.jsdelivr.net/gh/webkubor/free-imgbed@main/fovea/fovea-evidence-demo.mp4" controls width="820"></video>
+<video src="https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be" controls width="820"></video>
+
+（视频加载不出来？[直接打开视频](https://github.com/user-attachments/assets/4d8171f1-4862-45aa-ae68-9b8100b802be)）
 
 - **本版证据页截图**（真实浏览器渲染，深浅两套主题各一张）：
 
