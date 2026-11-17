@@ -261,8 +261,10 @@ function stableJSON(v) {
   return JSON.stringify(v)
 }
 
-// The call half and the answer half, from every shape. Gemini pairs on the
-// functionResponse id, or its name where older requests leave the id out.
+// The call half and the answer half, from every shape. A shape that leaves
+// the id out (older Gemini requests, the legacy functions API) is paired by
+// name and position instead — the name is never folded into the id, since
+// that would let it collide with a call whose id happens to be that name.
 function callsOf(it) {
   const out = []
   if (!it || typeof it !== "object") return out
